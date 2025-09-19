@@ -57,8 +57,6 @@ You'll explore sophisticated techniques for hiding communications in legitimate 
 
 The Open Systems Interconnection (OSI) model is a conceptual framework that standardizes network communications into seven distinct layers. Understanding this model is crucial for network security and protocol analysis.
 
-#### The Seven Layers
-
 ![The OSI Model](img/osi_model.png)
 
 **Layer 7 - Application Layer**

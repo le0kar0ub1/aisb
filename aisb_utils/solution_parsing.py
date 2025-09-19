@@ -168,8 +168,7 @@ TOC_LEVELS = [
 
 TOC_RE = re.compile(r"^(#+) (.+)$")
 TOC_MARKER = "<!-- toc -->"
-SLUG_ALLOWED_CHARS = string.ascii_letters + "-"
-
+SLUG_REMOVE_CHARS_REGEX = re.compile(r"[!\"#$%&'()*+,./:;<=>?@\[\\\]^`{|}~]+")
 
 @dataclass
 class TOCEntry:
@@ -279,7 +278,7 @@ class InstructionMaker(cst.CSTVisitor):
                 count = self.counters[prefix]
                 slug = f"{prefix}-{count}" if count > 0 else prefix
                 slug = slug.lower()  # VSCode only wants lowercase slugs
-                slug = "".join(c for c in slug if c in SLUG_ALLOWED_CHARS)
+                slug = SLUG_REMOVE_CHARS_REGEX.sub("", slug)
                 level = len(pounds) - 2
                 if level < 0:
                     continue  # Don't need to repeat toplevel
