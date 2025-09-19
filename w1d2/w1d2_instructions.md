@@ -17,12 +17,6 @@ This hands-on lab demonstrates the cat-and-mouse game between attackers and defe
 - [Introduction to networking](#introduction-to-networking)
     - [The OSI Model](#the-osi-model)
         - [The Seven Layers](#the-seven-layers)
-    - [Linux Networking Fundamentals](#linux-networking-fundamentals)
-        - [Network Namespaces](#network-namespaces)
-        - [Key Linux Networking Components](#key-linux-networking-components)
-        - [Linux Network Security Tools](#linux-network-security-tools)
-        - [Covert Channels and Protocol Abuse](#covert-channels-and-protocol-abuse)
-        - [Network Security Monitoring](#network-security-monitoring)
 - [Preliminaries](#preliminaries)
     - [Files](#files)
     - [Lab Architecture](#lab-architecture)
@@ -159,105 +153,6 @@ The Open Systems Interconnection (OSI) model is a conceptual framework that stan
 - Handles the physical transmission of data
 - Examples: Cables, radio frequencies, network interfaces
 - Security concerns: Physical access, electromagnetic interference
-
-### Linux Networking Fundamentals
-
-Linux provides a rich set of networking capabilities and tools that we'll leverage in our security exercises.
-
-#### Network Namespaces
-Linux network namespaces provide isolated network environments:
-```bash
-# Create a new network namespace
-sudo ip netns add isolated_net
-
-# Execute commands in the namespace
-sudo ip netns exec isolated_net ip link show
-
-# Delete the namespace
-sudo ip netns delete isolated_net
-```
-
-#### Key Linux Networking Components
-
-**Network Interfaces**
-- Physical interfaces (eth0, wlan0) and virtual interfaces (lo, tun, tap)
-- View interfaces: `ip link show` or `ifconfig`
-- Configure interfaces: `ip addr add 192.168.1.100/24 dev eth0`
-
-**Routing Table**
-- Determines how packets are forwarded
-- View routes: `ip route show` or `route -n`
-- Add routes: `ip route add 192.168.2.0/24 via 192.168.1.1`
-
-**iptables/netfilter**
-- Linux firewall and packet filtering framework
-- Operates at multiple OSI layers (primarily 3-4)
-- Essential for network security and traffic control
-- Example: `iptables -A INPUT -p tcp --dport 22 -j ACCEPT`
-
-**Network File Systems**
-- `/proc/net/`: Contains network statistics and configuration
-- `/sys/class/net/`: Network interface information
-- `/etc/network/interfaces`: Network configuration (Debian/Ubuntu)
-
-#### Linux Network Security Tools
-
-**tcpdump/Wireshark**
-- Packet capture and analysis tools
-- Operate at Layer 2-7 depending on configuration
-- Essential for network forensics and debugging
-
-**netstat/ss**
-- Display network connections and listening ports
-- `netstat -tuln` or `ss -tuln` for listening services
-- `netstat -an` or `ss -an` for all connections
-
-**nmap**
-- Network discovery and security auditing
-- Port scanning, service detection, OS fingerprinting
-- Example: `nmap -sS -O target_ip`
-
-**iptraf/nethogs**
-- Real-time network traffic monitoring
-- Bandwidth usage per process/connection
-
-#### Covert Channels and Protocol Abuse
-
-In today's exercises, we'll explore how legitimate protocols can be abused for covert communication:
-
-**DNS Tunneling**
-- Abuses DNS queries/responses (Layer 7)
-- Data encoded in subdomain names or TXT records
-- Often bypasses firewalls that allow DNS traffic
-
-**ICMP Tunneling**
-- Abuses ICMP ping packets (Layer 3)
-- Data hidden in ICMP payload or packet timing
-- Can bypass firewalls that allow ping traffic
-
-**HTTP/HTTPS Tunneling**
-- Uses legitimate web traffic as cover (Layer 7)
-- Data embedded in headers, URLs, or POST data
-- Difficult to detect without deep packet inspection
-
-#### Network Security Monitoring
-
-**Deep Packet Inspection (DPI)**
-- Examines packet contents beyond headers
-- Can detect protocol anomalies and covert channels
-- Operates across multiple OSI layers
-
-**Intrusion Detection Systems (IDS)**
-- Monitor network traffic for suspicious patterns
-- Can be signature-based or anomaly-based
-- Examples: Snort, Suricata, Zeek (formerly Bro)
-
-**Network Segmentation**
-- Isolates network segments to limit attack spread
-- Uses VLANs, firewalls, and access controls
-- Implements principle of least privilege
-
-This networking foundation will help you understand the protocols and techniques we'll be implementing and defending against in today's exercises.
 
 Reference: https://en.wikipedia.org/wiki/OSI_model
 
@@ -1281,6 +1176,7 @@ Implement a DNS interceptor that blocks TXT queries to suspicious domains.
 ```python
 
 from mitmproxy import dns as mitmproxydns  # alias to avoid conflict with dnspython
+import base64
 
 
 def get_packet(question, request):

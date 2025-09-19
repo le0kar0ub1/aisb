@@ -21,6 +21,7 @@ from scapy.all import IP, TCP, UDP, Raw
 import dns.resolver as dns_resolver
 from unittest.mock import patch, MagicMock
 from mitmproxy import dns as mitmproxydns
+import base64
 from scapy.all import IP, ICMP, sr1, Raw
 
 
