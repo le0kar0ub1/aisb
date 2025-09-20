@@ -97,4 +97,4 @@ Note: The malicious package will remain on the PyPI server until it's manually r
 - Disable arbitrary build/install scripts (PEP 517 isolated builds, `--only-binary=:all:` when possible).
 - Use content trust/signing and SLSA provenance.
 
-
+Typo squatting is even more of a concern as LLMs become more used in the development process. They are now used to install packages and it's easy to imagine them hallucinating package names or doing small typos.
