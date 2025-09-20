@@ -1,8 +1,10 @@
 FROM python:3.9-slim
 
-RUN pip install pypiserver
+RUN pip install pypiserver['passlib']
 
 EXPOSE 8080
 COPY packages /packages
 
-CMD ["pypi-server", "run", "-p", "8080", "-a", ".", "-P", ".", "/packages"] 
+RUN echo "admin:youDoNotNeedThisPasswordForTheExercise" > auth.txt
+
+CMD ["pypi-server", "run", "-p", "8080", "-P", "auth.txt", "/packages"] 

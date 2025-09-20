@@ -1,4 +1,7 @@
 # Main Exercises (Attacks)
+
+This day is about creating supply chain attacks. The exercises are vague on purpose, you need to see if you can find a way to exploit the system.
+
 Go to [exercises/ex1/exercise/instructions.md](exercises/ex1/exercise/instructions.md)
 
 # Securing

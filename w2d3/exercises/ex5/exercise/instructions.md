@@ -18,9 +18,6 @@ The developer wants customers to be able to download their game state and contin
 2. Open your browser and go to `http://localhost:5000`
 
 
-# Exercise 5.2: Becoming number 1
-Now get code execution on the server improving what you did in 5.1!
+## After this
 
-
-# Exercise 5.3
-Go back to w2d3_instructions.md from some more cool exercies
+Go back to w2d3_instructions.md for some more cool exercises
