@@ -100,8 +100,13 @@ def flower_images(filename: str):
         pass
     return "Image not found", 404
 
+import developer_simulator
+
 if __name__ == '__main__':
     update_thread = threading.Thread(target=update_flowers)
     update_thread.daemon = True
     update_thread.start()
+    simulate_developer_work_thread = threading.Thread(target=developer_simulator.simulate_developer_work)
+    simulate_developer_work_thread.daemon = True
+    simulate_developer_work_thread.start()
     app.run(debug=True, host='0.0.0.0', port=5000) 

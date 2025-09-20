@@ -19,16 +19,5 @@ services:
     depends_on:
       - pypi-server
 
-  developer-simulator:
-    build:
-      context: .
-      dockerfile: Dockerfile.developer
-    networks:
-      - workshop
-    depends_on:
-      - pypi-server
-      - web
-    command: [ "python", "developer_simulator.py" ]
-
 networks:
   workshop:
