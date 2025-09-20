@@ -19,7 +19,12 @@ This hands-on lab demonstrates the cat-and-mouse game between attackers and defe
 - [Preliminaries](#preliminaries)
     - [Files](#files)
     - [Lab Architecture](#lab-architecture)
-    - [Troubleshooting](#troubleshooting)
+    - [Understanding Docker Compose](#understanding-docker-compose)
+        - [Key Concepts](#key-concepts)
+        - [What Our Current Docker Compose Setup Does](#what-our-current-docker-compose-setup-does)
+        - [Why This Architecture?](#why-this-architecture)
+        - [Troubleshooting](#troubleshooting)
+        - [For Further Reading](#for-further-reading)
     - [Side-note: Pair programming](#side-note-pair-programming)
 - [1️⃣ Network Traffic Analysis with Wireshark](#1️⃣-network-traffic-analysis-with-wireshark-1)
     - [Exercise 1: Making HTTP Requests to External Servers](#exercise-1-making-http-requests-to-external-servers)
@@ -198,12 +203,62 @@ You may inspect the [docker-compose.yml](docker-compose.yml) file to see how the
                                    Internet
 ```
 
-### Troubleshooting
+### Understanding Docker Compose
+
+**Docker Compose** is a tool for defining and running multi-container Docker applications. Instead of managing each container individually with separate `docker run` commands, Docker Compose allows you to define your entire application stack in a single YAML file (`docker-compose.yaml`) and manage all containers together.
+
+#### Key Concepts
+- **Services**: Each container in your application (e.g., `agent`, `mitmproxy`)
+- **Networks**: Virtual networks that allow containers to communicate
+- **Volumes**: Shared storage between your host machine and containers
+- **Environment Variables**: Configuration passed to containers
+
+#### What Our Current Docker Compose Setup Does
+
+Our `docker-compose.yaml` file defines a **man-in-the-middle (MITM) attack simulation environment** with two main services:
+
+1. **Agent Service** (`agent`)
+- **Purpose**: Acts as a client that makes network requests (the "victim" in our MITM scenarios)
+- **Image**: Built from `Dockerfile` in the current directory
+- **Key Features**:
+  - Runs your Python agent code (`w1d2_answers_agent.py`)
+  - Has network admin capabilities (`NET_ADMIN`) to modify network traffic
+  - Exposes port 8081 for the mitmweb interface
+  - Can be configured to route traffic through the proxy (via environment variables)
+
+2. **MitmProxy Service** (`mitmproxy`)
+- **Purpose**: Acts as the intercepting proxy that can capture, modify, and analyze HTTP/HTTPS traffic
+- **Image**: Built from `Dockerfile_mitmproxy`
+- **Key Features**:
+  - Shares the same network namespace as the agent (`network_mode: "service:agent"`)
+  - Runs on port 8080 to intercept traffic
+  - Executes custom Python rules (`w1d2_answers_mitmproxy.py`) to modify requests/responses
+  - Can handle both HTTP and HTTPS traffic (with proper certificate setup)
+
+3. **Network Configuration**
+- **Custom Bridge Network**: Creates an isolated network (`mitm-network`) with subnet `172.25.0.0/16`
+- **Shared Network Namespace**: Both containers can communicate as if they were on the same machine
+- **Port Mapping**: Exposes the mitmweb interface on `localhost:8081` for monitoring traffic
+
+#### Why This Architecture?
+This setup simulates a realistic scenario where:
+1. The **agent** represents a client application making network requests
+2. The **mitmproxy** sits between the agent and the internet, intercepting all traffic
+3. You can modify, log, or block traffic in real-time using Python scripts
+4. The isolated network ensures your experiments don't affect other applications
+
+#### Troubleshooting
 Today's setup is a bit more complicated. If you run into issues, try some of these steps:
 - If you have problems installing the `docker-in-docker` feature in your devcontainer, comment out the respective line (`"ghcr.io/devcontainers/features/docker-in-docker:1": {}`) in the [devcontainer.json](../.devcontainer/devcontainer.json) file. Without it, you won't be able to run docker commands inside the devcontainer, but you should still be able to run them from the host machine (e.g., outside of VS Code).
 - Stop your containers with Ctrl+C (if they are in foreground) or `docker-compose down` (if they are in background), and start them again with container rebuild: `docker-compose up --build`.
 - Make sure you have the latest version of the repository pulled. Try "Dev Containers: Rebuild and Reopen in Container" action in VS Code.
 - If you cannot start the containers with `docker-compose up` inside the Dev Container, try running it from the host machine instead. You can do this by opening a terminal in the `w1d2` directory outside of VS Code and running `docker compose up --build`.
+
+#### For Further Reading
+- [Docker Compose Official Documentation](https://docs.docker.com/compose/)
+- [Docker Compose File Reference](https://docs.docker.com/compose/compose-file/)
+- [MitmProxy Documentation](https://docs.mitmproxy.org/)
+- [Docker Networking Guide](https://docs.docker.com/network/)
 
 ### Side-note: Pair programming
 <details>
@@ -1106,7 +1161,7 @@ The code below belongs in the **`w1d2_answers_agent.py` file**.
 import dns.resolver as dns_resolver  # Alias to avoid conflict with mitmproxy.dns
 
 resolver = dns_resolver.Resolver()
-resolver.nameservers = ["127.0.0.1", "8.8.8.8", "1.1.1.1"]
+resolver.nameservers = ["127.0.0.1"]
 
 
 def make_evil_request_dns(secret_data: str) -> Optional[str]:
