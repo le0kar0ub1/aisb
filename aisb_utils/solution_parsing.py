@@ -70,8 +70,6 @@ class StripSolutions(cst.CSTTransformer):
                 return cst.SimpleStatementLine(body=[cst.Expr(value=cst.SimpleString('"TODO: YOUR CODE HERE"'))])
             if test_value == "SKIP":
                 return cst.RemovalSentinel.REMOVE
-            if test_value == "REFERENCE_ONLY":
-                return cst.RemovalSentinel.REMOVE
         return updated_node
 
     def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
@@ -99,9 +97,6 @@ class ExtractSolutionBlocks(cst.CSTTransformer):
             test_value = updated_node.test.value.strip("'\"")
             if test_value == "SOLUTION":
                 # Return only the body of the SOLUTION block
-                return cst.FlattenSentinel(updated_node.body.body)
-            if test_value == "REFERENCE_ONLY":
-                # Return only the body of the REFERENCE_ONLY block
                 return cst.FlattenSentinel(updated_node.body.body)
             if test_value == "SKIP":
                 return cst.RemovalSentinel.REMOVE

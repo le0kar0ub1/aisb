@@ -172,7 +172,7 @@ You had an opportunity to pair up with a partner on your first day. Now that you
 """
 ## 1️⃣ Network Traffic Analysis with Wireshark
 """
-if "REFERENCE_ONLY":
+if "SKIP":
     import os
 
     IS_IN_AGENT = os.getenv("CONTAINER") == "agent"
