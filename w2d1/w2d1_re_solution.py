@@ -17,6 +17,116 @@ By the end of this module, you'll be able to:
 3. Overwrite return addresses to control program flow
 4. Understand modern security mitigations
 
+## Install Ghidra
+
+**You should install Ghidra on your local machine not in the dev container.**
+
+Ghidra is a free and open-source reverse engineering tool developed by the NSA. Here's how to install it on different platforms:
+
+<details>
+<summary><strong>macOS Installation</strong></summary>
+
+1. **Download Ghidra:**
+   - Visit: https://github.com/NationalSecurityAgency/ghidra/releases
+   - Download latest `ghidra_X.X.X_PUBLIC_YYYYMMDD.zip`
+
+2. **Extract and Install:**
+   ```bash
+   unzip ghidra_X.X.X_PUBLIC_YYYYMMDD.zip
+   sudo mv ghidra_X.X.X_PUBLIC /Applications/
+   chmod +x /Applications/ghidra_X.X.X_PUBLIC/ghidraRun
+   ```
+
+3. **Install Java (Required):**
+   ```bash
+   brew install openjdk@11  # or download from Oracle/OpenJDK
+   ```
+
+4. **Run Ghidra:**
+   ```bash
+   ./ghidraRun  # or /Applications/ghidra_X.X.X_PUBLIC/ghidraRun
+   ```
+
+</details>
+
+<details>
+<summary><strong>Linux Installation</strong></summary>
+
+1. **Download Ghidra:**
+   ```bash
+   wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_11.0.4_build/ghidra_11.0.4_PUBLIC_20230928.zip
+   # or: curl -L -O [same-url]
+   ```
+
+2. **Extract and Install:**
+   ```bash
+   unzip ghidra_11.0.4_PUBLIC_20230928.zip
+   sudo mv ghidra_11.0.4_PUBLIC /opt/
+   chmod +x /opt/ghidra_11.0.4_PUBLIC/ghidraRun
+   ```
+
+3. **Install Java (Required):**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install openjdk-11-jdk
+   
+   # CentOS/RHEL/Fedora
+   sudo yum install java-11-openjdk-devel  # or dnf for newer versions
+   
+   # Arch Linux
+   sudo pacman -S jdk11-openjdk
+   ```
+
+4. **Create Desktop Entry (Optional):**
+   ```bash
+   cat > ~/.local/share/applications/ghidra.desktop << EOF
+   [Desktop Entry]
+   Name=Ghidra
+   Comment=Software Reverse Engineering Framework
+   Exec=/opt/ghidra_11.0.4_PUBLIC/ghidraRun
+   Icon=/opt/ghidra_11.0.4_PUBLIC/support/ghidra.png
+   Terminal=false
+   Type=Application
+   Categories=Development;
+   EOF
+   ```
+
+5. **Run Ghidra:**
+   ```bash
+   ./ghidraRun  # or /opt/ghidra_11.0.4_PUBLIC/ghidraRun
+   ```
+
+</details>
+
+<details>
+<summary><strong>Windows Installation</strong></summary>
+
+1. **Download Ghidra:**
+   - Visit: https://github.com/NationalSecurityAgency/ghidra/releases
+   - Download latest `ghidra_X.X.X_PUBLIC_YYYYMMDD.zip`
+
+2. **Extract:**
+   - Extract to `C:\ghidra\` or `C:\Program Files\Ghidra\`
+   - Should have folder like `ghidra_11.0.4_PUBLIC`
+
+3. **Install Java (Required):**
+   - Download Java 11+ from:
+     - Oracle JDK: https://www.oracle.com/java/technologies/downloads/
+     - OpenJDK: https://adoptium.net/
+   - Install JDK (not JRE)
+   - Verify: `java -version` in Command Prompt
+
+4. **Run Ghidra:**
+   - Navigate to Ghidra folder
+   - Double-click `ghidraRun.bat`
+   - If Java errors: set JAVA_HOME environment variable
+
+5. **Create Desktop Shortcut (Optional):**
+   - Right-click `ghidraRun.bat` → "Create shortcut"
+   - Move shortcut to Desktop
+
+</details>
+
 Let's start by setting up our helper functions and understanding the tools we'll use.
 
 Copy these functions to your solutions file:
