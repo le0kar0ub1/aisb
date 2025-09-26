@@ -13,6 +13,8 @@ You have a ready-made machine to log into.
 
 **Login Info:**
 
+<!-- FIXME: HOW MACHINE IS AVAILABLE ? -->
+
 TO BE DISCOSED BY THE TAs TO PARTICIPANTS
 
 **Instructions:**
