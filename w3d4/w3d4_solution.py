@@ -13,8 +13,7 @@ You have a ready-made machine to log into.
 
 **Login Info:**
 
-* ssh ubuntu@192.222.58.5
-* Password: Pssy3gB325E1mn
+TO BE DISCOSED BY THE TAs TO PARTICIPANTS
 
 **Instructions:**
 

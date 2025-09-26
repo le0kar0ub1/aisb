@@ -50,10 +50,9 @@ Using this, you can access the MCP servers and run custom commands to exploit th
 import json
 import threading
 import time
-
 import requests
 
-#
+
 class MCPClient:
     def __init__(self, url_base):
         self.url_base = url_base
@@ -80,7 +79,7 @@ class MCPClient:
             state = None
             for line in response.iter_lines():
                 if line:
-                    print(line.decode('utf-8'))
+                    print(line.decode("utf-8"))
 
                     if line.startswith(b": ping"):
                         pass
@@ -90,7 +89,7 @@ class MCPClient:
                         state = "message"
                     elif line.startswith(b"data: "):
                         if state == "endpoint":
-                            self.endpoint = line[6:].strip().decode('utf-8')
+                            self.endpoint = line[6:].strip().decode("utf-8")
                         elif state == "message":
                             self.messages.append(json.loads(line[6:].strip()))
                         else:
@@ -116,7 +115,7 @@ class MCPClient:
             raise ValueError("Endpoint is not set. Connect to the MCP server first.")
 
         if "SOLUTION":
-            response = requests.post(self.url_base+self.endpoint, json=message)
+            response = requests.post(self.url_base + self.endpoint, json=message)
             if not 200 <= response.status_code < 300:
                 raise Exception(f"Failed to send message: {response.status_code} - {response.text}")
 
@@ -147,28 +146,21 @@ class MCPClient:
 
         if "SOLUTION":
             init_message = {
-              "jsonrpc": "2.0",
-              "id": 1,
-              "method": "initialize",
-              "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {
-                  "name": "AISB Client",
-                  "title": "Test Client for MCP",
-                  "version": "1.0.0"
-                }
-              }
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {},
+                    "clientInfo": {"name": "AISB Client", "title": "Test Client for MCP", "version": "1.0.0"},
+                },
             }
 
             self.send_message(init_message)
 
             self.server_info = self.get_message()
 
-            finish_init = {
-              "jsonrpc": "2.0",
-              "method": "notifications/initialized"
-            }
+            finish_init = {"jsonrpc": "2.0", "method": "notifications/initialized"}
 
             self.send_message(finish_init)
 
@@ -190,9 +182,7 @@ class MCPClient:
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "resources/list",
-                "params": {
-                    "cursor": cursor
-                } if cursor else {}
+                "params": {"cursor": cursor} if cursor else {},
             }
             self.send_message(message)
             response = self.get_message()
@@ -208,14 +198,7 @@ class MCPClient:
         :return: List of tools.
         """
         if "SOLUTION":
-            message = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "tools/list",
-                "params": {
-                    "cursor": cursor
-                }
-            }
+            message = {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {"cursor": cursor}}
             self.send_message(message)
             response = self.get_message()
             return response.get("result", {}).get("tools", [])
@@ -231,14 +214,7 @@ class MCPClient:
         """
 
         if "SOLUTION":
-            message = {
-                "jsonrpc": "2.0",
-                "id": 2,
-                "method": "resources/read",
-                "params": {
-                    "uri": resource_uri
-                }
-            }
+            message = {"jsonrpc": "2.0", "id": 2, "method": "resources/read", "params": {"uri": resource_uri}}
 
             self.send_message(message)
             response = self.get_message()
@@ -252,13 +228,14 @@ class MCPClient:
             # todo: implement the logic to access a resource by its URI
             pass
 
+
 if __name__ == "__main__":
     # Example usage
     mcp_client = MCPClient("https://0.mcp.aisb.dev")
     thread = threading.Thread(target=mcp_client.connect, daemon=True).start()
     while not mcp_client.endpoint:
         time.sleep(0.1)
-        print(".", end='')
+        print(".", end="")
     mcp_client.handshake()
 
 """
@@ -400,5 +377,3 @@ You can try one of these optional exercises to secure the MCP server:
 1. Implement the features as described in the article.
 2. Implement Oauth authentication for the MCP server - https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization
 """
-
-

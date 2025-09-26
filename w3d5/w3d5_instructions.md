@@ -52,10 +52,9 @@ Using this, you can access the MCP servers and run custom commands to exploit th
 import json
 import threading
 import time
-
 import requests
 
-#
+
 class MCPClient:
     def __init__(self, url_base):
         self.url_base = url_base
@@ -136,13 +135,14 @@ class MCPClient:
         # todo: implement the logic to access a resource by its URI
         pass
 
+
 if __name__ == "__main__":
     # Example usage
     mcp_client = MCPClient("https://0.mcp.aisb.dev")
     thread = threading.Thread(target=mcp_client.connect, daemon=True).start()
     while not mcp_client.endpoint:
         time.sleep(0.1)
-        print(".", end='')
+        print(".", end="")
     mcp_client.handshake()
 ```
 

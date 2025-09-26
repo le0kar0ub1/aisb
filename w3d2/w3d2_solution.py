@@ -16,6 +16,8 @@ How many tokens do you think each will be?
         "Hello\n\nworld",
     ]
 """
+
+from typing import List, Dict, Optional, Tuple, Any, Union
 from transformers import AutoTokenizer
 
 
@@ -40,29 +42,25 @@ class ModelPromptBuilder:
         self.history = []
 
     def add_to_history(self, role: str, content: str):
-        assert self.continue_final_message == False
+        assert not self.continue_final_message
 
-        self.history.append({
-            "role": role,
-            "content": content
-        })
+        self.history.append({"role": role, "content": content})
 
     def add_partial_to_history(self, role: str, content: str):
-        assert self.continue_final_message == False
+        assert not self.continue_final_message
 
-        self.history.append({
-            "role": role,
-            "content": content
-        })
+        self.history.append({"role": role, "content": content})
         self.continue_final_message = True
         self.add_generation_prompt = False
 
     def make_prompt(self, tokenizer):
         if "SOLUTION":
-            prompt = tokenizer.apply_chat_template(self.history,
-                                                   tokenize=False,
-                                                   add_generation_prompt=self.add_generation_prompt,
-                                                   continue_final_message=self.continue_final_message)
+            prompt = tokenizer.apply_chat_template(
+                self.history,
+                tokenize=False,
+                add_generation_prompt=self.add_generation_prompt,
+                continue_final_message=self.continue_final_message,
+            )
             return prompt
         else:
             # todo call tokenizer.apply_chat_template
@@ -91,7 +89,7 @@ string_list = [
 ]
 
 
-def part1(string_list):
+def part1(string_list: List[str]) -> None:
     for string in string_list:
         tokenizer = load_tokenizer("Qwen/Qwen3-0.6B", "/tmp/cache-tokenizer")
         tokens = []
@@ -103,6 +101,7 @@ def part1(string_list):
             pass
         print(f"Tokens: {tokens}")
         print(f"Token count: {len(tokens)}")
+
 
 part1(string_list)
 
@@ -120,7 +119,8 @@ Make sure to use tokenizer.apply_chat_template. This may be helpful.
 What do you notice?
 """
 
-def part2():
+
+def part2() -> None:
     question = "What is the capital of Japan?"
     tokenizer = load_tokenizer("Qwen/Qwen3-0.6B", "/tmp/cache-tokenizer")
     if "SOLUTION":
@@ -132,6 +132,7 @@ def part2():
     else:
         # todo return templated prompt
         pass
+
 
 part2()
 """
@@ -159,7 +160,8 @@ What do you notice?
 
 """
 
-def part3():
+
+def part3() -> None:
     question_list = [
         "What is the capital of Japan?",
         "What is the best way to make $1,000,000?",
@@ -182,6 +184,7 @@ def part3():
                 # todo make a prompt with ModelPromptBuilder
                 pass
 
+
 part3()
 """
 ### Exercise 1.4
@@ -197,7 +200,7 @@ and make sure to use continue_final_message=False, add_generation_prompt=True.
 
 Is this a thinking model?
 """
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM
 import torch
 
 
@@ -256,7 +259,7 @@ class ModelConfig:
     }
 
     @staticmethod
-    def get(model_name: str):
+    def get(model_name: str) -> Dict[str, Any]:
         if model_name not in ModelConfig.SUPPORTED_MODELS:
             print(f"ERROR: model {model_name} not supported")
             exit(1)
@@ -264,7 +267,7 @@ class ModelConfig:
 
 
 class ModelPromptBuilder:
-    def __init__(self, model_name: str, invokes_cot: bool = True):
+    def __init__(self, model_name: str, invokes_cot: bool = True) -> None:
         self.model_name = model_name
         self.invokes_cot = invokes_cot
         self.question = None
@@ -274,20 +277,23 @@ class ModelPromptBuilder:
         self.add_generation_prompt = True
         self.history = []
 
-    def get_model_custom_instruction(self):
-        please_write_answer = "Please write the string \"Answer: \" before the final answer."
+    def get_model_custom_instruction(self) -> Optional[str]:
+        please_write_answer = 'Please write the string "Answer: " before the final answer.'
 
         if self.model_name == "google/gemma-2-2b-it":
             return please_write_answer
-        if self.model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or self.model_name == "meta-llama/Llama-2-7b-chat-hf":
+        if (
+            self.model_name == "meta-llama/Meta-Llama-3-8B-Instruct"
+            or self.model_name == "meta-llama/Llama-2-7b-chat-hf"
+        ):
             return please_write_answer
 
         return None
 
-    def add_system_instruction(self, system_instruction: str):
+    def add_system_instruction(self, system_instruction: str) -> None:
         self.add_to_history("system", system_instruction)
 
-    def add_user_message(self, question: str, custom_instruction: str = None):
+    def add_user_message(self, question: str, custom_instruction: Optional[str] = None) -> None:
         self.question = question
         if custom_instruction is None:
             custom_instruction = "Let's think step by step."
@@ -297,29 +303,23 @@ class ModelPromptBuilder:
         self.add_to_history("user", f"Question: {question}\n{custom_instruction}")
 
     def add_to_history(self, role: str, content: str):
-        assert self.continue_final_message == False
+        assert not self.continue_final_message
 
-        self.history.append({
-            "role": role,
-            "content": content
-        })
+        self.history.append({"role": role, "content": content})
 
     def add_partial_to_history(self, role: str, content: str):
-        assert self.continue_final_message == False
+        assert not self.continue_final_message
 
-        self.history.append({
-            "role": role,
-            "content": content
-        })
+        self.history.append({"role": role, "content": content})
         self.continue_final_message = True
         self.add_generation_prompt = False
 
-    def add_think_token(self):
+    def add_think_token(self) -> None:
         model_config = ModelConfig.get(self.model_name)
         if "begin_think" in model_config:
-            if (self.model_name == "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"):
+            if self.model_name == "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B":
                 self.add_partial_to_history("assistant", "<think>")
-            elif (self.model_name == "openai/gpt-oss-20b"):
+            elif self.model_name == "openai/gpt-oss-20b":
                 self.add_partial_to_history("assistant", "analysis")
         elif "fuzzy_end_think_list" in model_config:
             pass
@@ -332,15 +332,17 @@ class ModelPromptBuilder:
             self.add_think_token()
         return self._apply_chat_template(tokenizer)
 
-    def _apply_chat_template(self, tokenizer):
-        prompt = tokenizer.apply_chat_template(self.history,
-                                               tokenize=False,
-                                               add_generation_prompt=self.add_generation_prompt,
-                                               continue_final_message=self.continue_final_message)
+    def _apply_chat_template(self, tokenizer: AutoTokenizer) -> str:
+        prompt = tokenizer.apply_chat_template(
+            self.history,
+            tokenize=False,
+            add_generation_prompt=self.add_generation_prompt,
+            continue_final_message=self.continue_final_message,
+        )
         return prompt
 
 
-def load_tokenizer(model_name: str, cache_dir: str = "/tmp/cache"):
+def load_tokenizer(model_name: str, cache_dir: str = "/tmp/cache") -> AutoTokenizer:
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
         cache_dir=cache_dir,
@@ -355,7 +357,7 @@ def load_tokenizer(model_name: str, cache_dir: str = "/tmp/cache"):
     return tokenizer
 
 
-def load_model(model_name: str, cache_dir: str = "/tmp/cache"):
+def load_model(model_name: str, cache_dir: str = "/tmp/cache") -> Tuple[Any, AutoTokenizer]:
     if "SOLUTION":
         tokenizer = load_tokenizer(model_name, cache_dir)
         model = AutoModelForCausalLM.from_pretrained(
@@ -370,7 +372,7 @@ def load_model(model_name: str, cache_dir: str = "/tmp/cache"):
         return (model, tokenizer)
 
 
-def part4():
+def part4() -> None:
     print("=== Part 4 ===")
     model_name = "Qwen/Qwen3-0.6B"
     question = "I'm trying to decide whether to take another bootcamp."
@@ -386,13 +388,21 @@ def part4():
         # Use tokenizer.__call__ method for proper attention mask handling
         encoded_prompt = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True).to(model.device)
 
-        output = model.generate(encoded_prompt.input_ids, attention_mask=encoded_prompt.attention_mask, do_sample=False,
-                                max_new_tokens=1024, temperature=None, top_p=None, top_k=None)
+        output = model.generate(
+            encoded_prompt.input_ids,
+            attention_mask=encoded_prompt.attention_mask,
+            do_sample=False,
+            max_new_tokens=1024,
+            temperature=None,
+            top_p=None,
+            top_k=None,
+        )
         decoded_output = tokenizer.decode(output[0])
     else:
         # todo generate a response, update decoded_output
         decoded_output = None
     print(decoded_output)
+
 
 part4()
 """
@@ -415,7 +425,8 @@ What happens? And why is it an infinite loop?
 
 """
 
-def part5():
+
+def part5() -> None:
     print("\n=== Part 5 ===")
     model_name = "Qwen/Qwen3-0.6B"
     question = "I'm trying to decide whether to take another bootcamp."
@@ -431,13 +442,21 @@ def part5():
         # Use tokenizer.__call__ method for proper attention mask handling
         encoded_prompt = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True).to(model.device)
 
-        output = model.generate(encoded_prompt.input_ids, attention_mask=encoded_prompt.attention_mask, do_sample=False,
-                                max_new_tokens=1024, temperature=None, top_p=None, top_k=None)
+        output = model.generate(
+            encoded_prompt.input_ids,
+            attention_mask=encoded_prompt.attention_mask,
+            do_sample=False,
+            max_new_tokens=1024,
+            temperature=None,
+            top_p=None,
+            top_k=None,
+        )
         decoded_output = tokenizer.decode(output[0])
     else:
         # todo generate a response, update decoded_output
         decoded_output = None
     print(decoded_output)
+
 
 part5()
 """
@@ -462,7 +481,8 @@ Can you fix any infinite loops by modifying the prompt?
 
 """
 
-def part6():
+
+def part6() -> None:
     print("\n=== Part 6 ===")
     question_list = [
         "What is the capital of Japan?",
@@ -484,14 +504,22 @@ def part6():
                 encoded_prompt = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True).to(model.device)
                 # encoded_prompt = tokenizer.encode(prompt, return_tensors="pt", padding=True, truncation=True).to(model.device)
 
-                output = model.generate(encoded_prompt.input_ids, attention_mask=encoded_prompt.attention_mask,
-                                        do_sample=False, max_new_tokens=1024, temperature=None, top_p=None, top_k=None)
+                output = model.generate(
+                    encoded_prompt.input_ids,
+                    attention_mask=encoded_prompt.attention_mask,
+                    do_sample=False,
+                    max_new_tokens=1024,
+                    temperature=None,
+                    top_p=None,
+                    top_k=None,
+                )
                 decoded_output = tokenizer.decode(output[0])
             else:
                 # todo generate a response, update decoded_output
                 decoded_output = None
 
             print(decoded_output)
+
 
 part6()
 # %%
@@ -544,13 +572,14 @@ from tqdm import tqdm
 
 # %%
 # 1. Load the model and tokenizer
-model_name="openai-community/gpt2"
+model_name = "openai-community/gpt2"
 print(f"Loading model: {model_name}...")
 tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 model = GPT2LMHeadModel.from_pretrained(model_name)
 model.eval()
 
-def get_next_logits(input_ids):
+
+def get_next_logits(input_ids: torch.Tensor) -> torch.Tensor:
     """
     Get the logits for the next token given input_ids.
     """
@@ -559,13 +588,14 @@ def get_next_logits(input_ids):
         outputs = model(input_ids)
         return outputs.logits[:, -1, :]
 
+
 # Set pad token if it's not set
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
 if "SOLUTION":
-    n_queries=1000
-    max_prompt_length=10
+    n_queries = 1000
+    max_prompt_length = 10
     vocab_size = tokenizer.vocab_size
     print(f"Vocabulary size (l): {vocab_size}")
     print(f"Number of queries (n): {n_queries}")
@@ -586,7 +616,7 @@ if "SOLUTION":
 
     # 4. Convert list to a NumPy matrix Q
     Q = np.vstack(logit_matrix_q)
-    print(f"Shape of logit matrix Q: {Q.shape}") # Should be (n_queries, vocab_size)
+    print(f"Shape of logit matrix Q: {Q.shape}")  # Should be (n_queries, vocab_size)
 
     # 5. Compute the Singular Values of Q
     print("Computing Singular Value Decomposition (SVD)...")
@@ -597,16 +627,16 @@ if "SOLUTION":
     print("Plotting results...")
     plt.figure(figsize=(10, 6))
     plt.plot(singular_values)
-    plt.yscale('log')
-    plt.title(f'Sorted Singular Values of Logit Matrix for {model_name}')
-    plt.xlabel('Sorted Singular Values (Index)')
-    plt.ylabel('Magnitude (log scale)')
+    plt.yscale("log")
+    plt.title(f"Sorted Singular Values of Logit Matrix for {model_name}")
+    plt.xlabel("Sorted Singular Values (Index)")
+    plt.ylabel("Magnitude (log scale)")
     plt.grid(True)
 
     # The paper notes GPT-2 Small has a hidden dimension of 768.
     # We add a vertical line to mark this expected drop-off point.
     known_hidden_dim = 768
-    plt.axvline(x=known_hidden_dim, color='r', linestyle='--', label=f'Known Hidden Dim: {known_hidden_dim}')
+    plt.axvline(x=known_hidden_dim, color="r", linestyle="--", label=f"Known Hidden Dim: {known_hidden_dim}")
     plt.legend()
     plt.show()
 else:
@@ -669,14 +699,15 @@ else:
 # We need to transpose it to match the (vocab_size, hidden_size) shape.
 true_weights = model.lm_head.weight.detach().numpy()
 
+
 # %%
-def compare_weights(W_extracted, W_true):
+def compare_weights(W_extracted: np.ndarray, W_true: np.ndarray) -> Tuple[float, float, float]:
     """
     Compares the extracted weight matrix with the ground truth matrix.
 
     Args:
-        W_extracted (numpy.ndarray): The weights recovered from the attack (W_tilde).
-        W_true (numpy.ndarray): The ground truth weights from the model.
+        W_extracted: The weights recovered from the attack (W_tilde).
+        W_true: The ground truth weights from the model.
 
     Returns:
         tuple: (rmse, avg_cosine_sim, percentage_similarity)
@@ -690,7 +721,7 @@ def compare_weights(W_extracted, W_true):
         G, residuals, rank, s = np.linalg.lstsq(W_extracted, W_true, rcond=None)
     except np.linalg.LinAlgError as e:
         print(f"Error solving least squares: {e}")
-        return float('nan'), float('nan'), float('nan')
+        return float("nan"), float("nan"), float("nan")
 
     # 2. Align the extracted weights using the solved G
     W_aligned = W_extracted @ G
@@ -715,14 +746,15 @@ def compare_weights(W_extracted, W_true):
 
     # Calculate cosine similarity for each column and average
     cosine_similarities = (W_aligned_normalized * W_true_normalized).sum(axis=0)
-    avg_cosine_sim = (cosine_similarities.mean())
+    avg_cosine_sim = cosine_similarities.mean()
 
     # 5. Calculate a "Percentage Similarity" metric based on relative error
     # Frobenius norm is the square root of the sum of the absolute squares of its elements.
-    relative_error = np.linalg.norm(W_aligned - W_true, 'fro') / np.linalg.norm(W_true, 'fro')
+    relative_error = np.linalg.norm(W_aligned - W_true, "fro") / np.linalg.norm(W_true, "fro")
     percentage_similarity = (1 - relative_error) * 100
 
     return rmse, avg_cosine_sim, percentage_similarity
+
 
 # 4. Compare the weights and print results
 rmse, cosine_sim, percent_sim = compare_weights(W_extracted, true_weights)
