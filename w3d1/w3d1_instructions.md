@@ -441,6 +441,8 @@ First, let's set up a small Stable Diffusion model and generate a baseline image
 
 import torch
 from diffusers import StableDiffusionPipeline, UNet2DConditionModel
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def setup_diffusion_pipeline() -> StableDiffusionPipeline:
