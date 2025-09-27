@@ -12,6 +12,8 @@ Today you'll learn more about fundamental cryptographic primitives and discover 
     - [3️⃣ Padding Oracle Attacks](#-padding-oracle-attacks)
 - [1️⃣ Cryptographic Hashing and HMAC](#-cryptographic-hashing-and-hmac-)
     - [Why Hashing Matters](#why-hashing-matters)
+    - [Endianness](#endianness)
+    - [Byte Manipulation in Python](#byte-manipulation-in-python)
     - [Exercise 1.1: Implementing MD5](#exercise--implementing-md)
         - [MD5 Algorithm Overview](#md-algorithm-overview)
         - [MD5 Building Blocks](#md-building-blocks)
@@ -139,10 +141,50 @@ What makes cryptographic hash functions useful for security are these properties
 
 </blockquote></details>
 
+### Endianness
+
+Endianness refers to the order in which bytes are stored in memory. There are two main endiannesses:
+- Big endian: The most significant byte is stored at the lowest address
+- Little endian: The least significant byte is stored at the lowest address
+
+Most modern processors use little endian, but some older ones use big endian.
+
+[Wikipedia: Endianness](https://en.wikipedia.org/wiki/Endianness)
+
+### Byte Manipulation in Python
+
+When working with cryptography, it's crucial to understand how **bytes** are represented and manipulated in Python. The `bytes` type is a sequence of raw byte values (integers between `0–255`).
+* `0x80` is just an **integer literal** (decimal 128)
+* If you write `b"\x80"`, that represents **a single byte** with the value `128`.
+* If you try to use `"0x80"` (a string), that’s four characters (`'0'`, `'x'`, `'8'`, `'0'`) which is **four bytes long**, not one.
+
+```python
+# You can access and modify individual bytes using indexing:
+b = b"hello"
+print(b[0])  # 104
+b[0] = 105
+print(b)  # b'iello'
+```
+```python
+# You can convert between bytes and integers:
+b = b"\x80\x40"
+i = 0x80
+print(int.from_bytes(b))  # 32832
+print(i.to_bytes())  # b'\x80'
+```
+```python
+# You can convert between bytes and strings:
+b = b"hello"
+print(b.decode("utf-8"))  # 'hello'
+print(b.encode("utf-8"))  # b'hello'
+```
+
+If integer value fall into the range 0-127, it's converted to a character using the [ASCII table](https://www.ascii-code.com/) otherwise it's converted to a backslash followed by the hexadecimal value.
+
+**Paste the code below in your w1d4_answers.py file.**
 
 
 ```python
-
 
 from typing import List
 import math
@@ -155,7 +197,6 @@ from typing import Tuple, Optional, Callable, Literal
 import secrets
 import json
 from Crypto.Cipher import AES
-
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from aisb_utils import report
@@ -177,7 +218,7 @@ MD5 processes data in 512-bit blocks and produces a 128-bit hash. On a high leve
 3. Processes the message in 512-bit blocks, updating the state after each block
 4. Concatenates the final state bytes to produce the final 128-bit hash.
 
-Processing of each 512-bit block involves updatung the state in 64 rounds.
+Processing of each 512-bit block involves updating the state in 64 rounds.
 Each round uses one of four auxiliary functions (F, G, H, I) and follows this pattern:
 ```
 A, B, C, D = D, (B + left_rotate((A + F(B,C,D) + X[k] + T[i]), s)), B, C
@@ -359,6 +400,14 @@ test_left_rotate(left_rotate)
 test_md5_padding_length(md5_padding)
 test_md5_padding_content(md5_padding)
 ```
+
+<details>
+<summary>Hint</summary><blockquote>
+
+When appending the the '1' bit 0x80, make sure you are indeed appending only one bit, not an integer. You can use, e.g., `b"\x80"`.
+</blockquote></details>
+
+
 
 #### MD5 Implementation
 
@@ -1543,7 +1592,7 @@ def cbc_encrypt(plaintext: bytes, key: bytes, iv: bytes) -> bytes:
     Encrypt plaintext using AES in CBC mode.
 
     Args:
-        plaintext: The message to encrypt (will be padded)
+        plaintext: The message to encrypt
         key: AES key (16, 24, or 32 bytes)
         iv: Initialization vector (16 bytes)
 
@@ -1564,6 +1613,7 @@ Now implement CBC decryption using the provided `single_block_aes_decrypt()` fun
 
 > **Difficulty**: 🔴🔴🔴⚪⚪
 > **Importance**: 🔵🔵🔵🔵⚪
+
 
 
 ```python
@@ -1651,8 +1701,7 @@ class VulnerableServer:
         Decrypt and validate a cookie.
 
         Returns:
-            (success, error_message)
-            - (True, None) if decryption succeeds
+            - (True, decrypted_cookie) if decryption succeeds, where decrypted_cookie is parsed as json from plaintext
             - (False, "PADDING_ERROR") if padding is invalid
             - (False, "INVALID_COOKIE") for other errors
 
@@ -1965,7 +2014,7 @@ However, we can increase the value of IV by one and try again, until we succeed 
 </table>
 
 This gives us signal that the last byte of the plaintext for given IV is 0x01.
-Recall that that `P[0] = intermediary ⊕ IV`. Together, this gives us the last byte of intermediary (`intermediary = P[0] ⊕ IV`): 0x01 ⊕ 0x31 = 0x30.
+Recall that `P[0] = intermediary ⊕ IV`. Together, this gives us the last byte of intermediary (`intermediary = P[0] ⊕ IV`): 0x01 ⊕ 0x31 = 0x30.
 
 **Now that we've decrypted the last byte of the sample block to be 0x30**, we can move on to the second last byte.
 
@@ -2301,9 +2350,9 @@ The POODLE attack is a great demonstration of how vulnerabilities arise in pract
 **Here are some quiz questions for you:**
 
 <details>
-<summary><b>Question:</b> An attacker needs to decrypt a 20-byte session cookie. Approximately how many HTTPS requests will they need to make on average?</summary><blockquote>
+<summary><b>Question:</b> An attacker needs to decrypt a 20-byte session cookie. Approximately how many HTTPS requests will they need to make?</summary><blockquote>
 
-20 bytes × 256 attempts per byte = 5,120 requests on average. In practice, some extra requests may be needed to determine the size of cookies if unknown in advance.
+20 bytes × 256 attempts per byte = 5,120 requests in the worst case. In practice, some extra requests may be needed to determine the size of cookies if unknown in advance.
 </blockquote></details>
 
 <br>

@@ -81,8 +81,48 @@ What makes cryptographic hash functions useful for security are these properties
 
 </details>
 
-"""
+### Endianness
 
+Endianness refers to the order in which bytes are stored in memory. There are two main endiannesses:
+- Big endian: The most significant byte is stored at the lowest address
+- Little endian: The least significant byte is stored at the lowest address
+
+Most modern processors use little endian, but some older ones use big endian.
+
+[Wikipedia: Endianness](https://en.wikipedia.org/wiki/Endianness)
+
+### Byte Manipulation in Python
+
+When working with cryptography, it's crucial to understand how **bytes** are represented and manipulated in Python. The `bytes` type is a sequence of raw byte values (integers between `0–255`).
+* `0x80` is just an **integer literal** (decimal 128)
+* If you write `b"\x80"`, that represents **a single byte** with the value `128`.  
+* If you try to use `"0x80"` (a string), that’s four characters (`'0'`, `'x'`, `'8'`, `'0'`) which is **four bytes long**, not one.
+
+```python
+# You can access and modify individual bytes using indexing:
+b = b"hello"
+print(b[0])  # 104
+b[0] = 105
+print(b)  # b'iello'
+```
+```python
+# You can convert between bytes and integers:
+b = b"\x80\x40"
+i = 0x80
+print(int.from_bytes(b))  # 32832
+print(i.to_bytes())  # b'\x80'
+```
+```python
+# You can convert between bytes and strings:
+b = b"hello"
+print(b.decode("utf-8"))  # 'hello'
+print(b.encode("utf-8"))  # b'hello'
+```
+
+If integer value fall into the range 0-127, it's converted to a character using the [ASCII table](https://www.ascii-code.com/) otherwise it's converted to a backslash followed by the hexadecimal value.
+
+**Paste the code below in your w1d4_answers.py file.**
+"""
 from typing import List
 import math
 from collections.abc import Callable
@@ -94,7 +134,6 @@ from typing import Tuple, Optional, Callable, Literal
 import secrets
 import json
 from Crypto.Cipher import AES
-
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from aisb_utils import report
@@ -2226,7 +2265,7 @@ def cbc_encrypt(plaintext: bytes, key: bytes, iv: bytes) -> bytes:
     Encrypt plaintext using AES in CBC mode.
 
     Args:
-        plaintext: The message to encrypt (will be padded)
+        plaintext: The message to encrypt
         key: AES key (16, 24, or 32 bytes)
         iv: Initialization vector (16 bytes)
 
@@ -2301,7 +2340,6 @@ Now implement CBC decryption using the provided `single_block_aes_decrypt()` fun
 > **Difficulty**: 🔴🔴🔴⚪⚪
 > **Importance**: 🔵🔵🔵🔵⚪
 
-<!-- FIXME: reported by participant:  On CBC Encrypt (3.2), the excercise LIES to you. The plaintext is not padded (as the comments seem to imply will come in already padded). Do not fall for this! -->
 """
 
 
