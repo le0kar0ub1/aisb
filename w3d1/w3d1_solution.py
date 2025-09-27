@@ -15,7 +15,7 @@ Today we'll explore security aspects of image models through two key topics:
 
 """
 
-#%%
+# %%
 """
 ## Exercise 1: Adversarial Attacks on Vision Models
 
@@ -45,6 +45,7 @@ The key insight: Neural networks are vulnerable to small, carefully crafted chan
 First, let's load a pre-trained Vision Transformer (ViT) and see how it classifies images.
 """
 
+from typing import Tuple, Dict, List, Optional, Any, Union
 import numpy as np
 import torch
 from transformers import ViTImageProcessor, ViTForImageClassification
@@ -52,20 +53,24 @@ from PIL import Image
 import requests
 import matplotlib.pyplot as plt
 
-def load_model_and_image():
+
+def load_model_and_image() -> Tuple[ViTImageProcessor, ViTForImageClassification, torch.Tensor]:
     """Load a pre-trained ViT model and a sample image."""
     # Load the model
-    processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224')
-    model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224')
+    processor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
+    model = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224")
 
     # Load a sample image
-    url = 'http://images.cocodataset.org/val2017/000000039769.jpg'
+    url = "http://images.cocodataset.org/val2017/000000039769.jpg"
     raw_image = Image.open(requests.get(url, stream=True).raw)
     image = torch.tensor(np.array(raw_image)).permute(2, 0, 1)
 
     return processor, model, image
 
-def classify_image(processor, model, image):
+
+def classify_image(
+    processor: ViTImageProcessor, model: ViTForImageClassification, image: torch.Tensor
+) -> Tuple[int, str]:
     """
     Classify an image using the ViT model.
 
@@ -94,6 +99,7 @@ def classify_image(processor, model, image):
         # - Find and return the predicted class index and name
         pass
 
+
 """
 <details>
 <summary>Hint: getting the predicted class name</summary>
@@ -115,11 +121,11 @@ assert class_idx == 285
 assert class_name == "Egyptian cat"
 
 plt.figure(figsize=(8, 6))
-plt.imshow(image.numpy().transpose(1, 2, 0).astype('uint8'))
-plt.title(f'Predicted class: {class_name}')
-plt.axis('off')
+plt.imshow(image.numpy().transpose(1, 2, 0).astype("uint8"))
+plt.title(f"Predicted class: {class_name}")
+plt.axis("off")
 plt.show()
-#%%
+# %%
 """
 ### Exercise 1.2a: Adding Random Noise (Optional)
 
@@ -133,7 +139,7 @@ How much randomness do you need to add to change the prediction? What is the pre
 
 If you can find a way to control this, it would be an excellent attack because it is blackbox, unlike the next attack.
 """
-#%%
+# %%
 """
 ### Exercise 1.2b: Crafting Adversarial Examples
 
@@ -150,7 +156,15 @@ The basic approach:
 3. Train on this
 """
 
-def create_adversarial_perturbation(processor, model, image, target_class_id, steps=10, lr=0.1):
+
+def create_adversarial_perturbation(
+    processor: ViTImageProcessor,
+    model: ViTForImageClassification,
+    image: torch.Tensor,
+    target_class_id: int,
+    steps: int = 10,
+    lr: float = 0.1,
+) -> Tuple[torch.Tensor, torch.Tensor, bool]:
     """
     Create an adversarial perturbation to make the model classify the image as target_class.
 
@@ -172,7 +186,7 @@ def create_adversarial_perturbation(processor, model, image, target_class_id, st
         inputs = processor(images=image, return_tensors="pt")
 
         # Initialize perturbation
-        perturbation = torch.rand_like(inputs['pixel_values']) * 0.01
+        perturbation = torch.rand_like(inputs["pixel_values"]) * 0.01
         perturbation.requires_grad = True
 
         # Optimizer for the perturbation
@@ -183,7 +197,7 @@ def create_adversarial_perturbation(processor, model, image, target_class_id, st
             optimizer.zero_grad()
 
             # Apply perturbation
-            perturbed_inputs = inputs['pixel_values'] + perturbation
+            perturbed_inputs = inputs["pixel_values"] + perturbation
 
             # Get model predictions
             outputs = model(pixel_values=perturbed_inputs)
@@ -202,9 +216,9 @@ def create_adversarial_perturbation(processor, model, image, target_class_id, st
             optimizer.step()
 
             if step % 2 == 0:
-                print(f'Step {step}, Loss: {loss.item():.4f}, Predicted: {model.config.id2label[predicted_class]}')
+                print(f"Step {step}, Loss: {loss.item():.4f}, Predicted: {model.config.id2label[predicted_class]}")
 
-        perturbed_image = inputs['pixel_values'] + perturbation
+        perturbed_image = inputs["pixel_values"] + perturbation
         return perturbation.detach(), perturbed_image.detach(), success
     else:
         # TODO: Implement adversarial perturbation generation
@@ -213,12 +227,13 @@ def create_adversarial_perturbation(processor, model, image, target_class_id, st
         # - Minimize cross-entropy loss with target class
         pass
 
+
 # Test adversarial attack
-target_class = 'daisy'
+target_class = "daisy"
 target_class_id = model.config.label2id[target_class]
 
 print(f"\nAttempting to change prediction to: {target_class}")
-print("="*60)
+print("=" * 60)
 
 perturbation, perturbed_image, success = create_adversarial_perturbation(
     processor, model, image, target_class_id, steps=10, lr=0.1
@@ -234,18 +249,18 @@ Use the following to look at the image, perturbation, and perturbation + image.
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
 # Original image
-axes[0].imshow(image.numpy().transpose(1, 2, 0).astype('uint8'))
+axes[0].imshow(image.numpy().transpose(1, 2, 0).astype("uint8"))
 _, orig_class = classify_image(processor, model, image)
-axes[0].set_title(f'Original: {orig_class}')
-axes[0].axis('off')
+axes[0].set_title(f"Original: {orig_class}")
+axes[0].axis("off")
 
 # Perturbation (normalized for visualization)
 pert_vis = perturbation.squeeze().permute(1, 2, 0).numpy()
 # Normalize to [0, 1] for visualization
 pert_vis = (pert_vis - pert_vis.min()) / (pert_vis.max() - pert_vis.min())
 axes[1].imshow(pert_vis)
-axes[1].set_title(f'Perturbation (L2: {perturbation.norm().item():.3f})')
-axes[1].axis('off')
+axes[1].set_title(f"Perturbation (L2: {perturbation.norm().item():.3f})")
+axes[1].axis("off")
 
 # Perturbed image
 perturbed_vis = perturbed_image.squeeze().permute(1, 2, 0).numpy()
@@ -253,8 +268,8 @@ axes[2].imshow(perturbed_vis)
 # Get prediction for perturbed image
 outputs = model(pixel_values=perturbed_image)
 pred_idx = outputs.logits.argmax(-1).item()
-axes[2].set_title(f'Perturbed: {model.config.id2label[pred_idx]}')
-axes[2].axis('off')
+axes[2].set_title(f"Perturbed: {model.config.id2label[pred_idx]}")
+axes[2].axis("off")
 
 plt.tight_layout()
 plt.show()
@@ -265,7 +280,7 @@ plt.show()
 - Is there a pattern in the patches? Why?
 """
 
-#%%
+# %%
 """
 ### Exercise 1.3: Constrained Adversarial Attacks
 
@@ -282,8 +297,17 @@ We'll implement:
 3. Comparison of different regularization strengths
 """
 
-def create_constrained_adversarial_attack(processor, model, image, target_class_id,
-                                        steps=20, lr=0.05, l2_reg=2.0, l_inf_bound=0.1):
+
+def create_constrained_adversarial_attack(
+    processor: ViTImageProcessor,
+    model: ViTForImageClassification,
+    image: torch.Tensor,
+    target_class_id: int,
+    steps: int = 20,
+    lr: float = 0.05,
+    l2_reg: float = 2.0,
+    l_inf_bound: float = 0.1,
+) -> Tuple[torch.Tensor, torch.Tensor, bool]:
     """
     Create an adversarial perturbation, but add l2 and l∞ constraints.
 
@@ -301,18 +325,17 @@ def create_constrained_adversarial_attack(processor, model, image, target_class_
         perturbation: The adversarial perturbation
         perturbed_image: The adversarially perturbed image
         success: Whether the attack succeeded
-        history: Dictionary with loss and prediction history
     """
     if "SOLUTION":
         inputs = processor(images=image, return_tensors="pt")
 
         # Initialize perturbation
-        perturbation = torch.zeros_like(inputs['pixel_values'])
+        perturbation = torch.zeros_like(inputs["pixel_values"])
         perturbation.requires_grad = True
 
         optimizer = torch.optim.Adam([perturbation], lr=lr)
 
-        history = {'loss': [], 'predictions': []}
+        history = {"loss": [], "predictions": []}
         success = False
 
         for step in range(steps):
@@ -320,7 +343,7 @@ def create_constrained_adversarial_attack(processor, model, image, target_class_
 
             # Apply perturbation with L∞ constraint
             clamped_perturbation = torch.clamp(perturbation, -l_inf_bound, l_inf_bound)
-            perturbed_inputs = inputs['pixel_values'] + clamped_perturbation
+            perturbed_inputs = inputs["pixel_values"] + clamped_perturbation
 
             # Ensure pixel values stay in valid range [0, 1]
             perturbed_inputs = torch.clamp(perturbed_inputs, 0, 1)
@@ -336,8 +359,8 @@ def create_constrained_adversarial_attack(processor, model, image, target_class_
 
             # Track progress
             predicted_class = logits.argmax(-1).item()
-            history['loss'].append(total_loss.item())
-            history['predictions'].append(predicted_class)
+            history["loss"].append(total_loss.item())
+            history["predictions"].append(predicted_class)
 
             if predicted_class == target_class_id:
                 success = True
@@ -347,12 +370,14 @@ def create_constrained_adversarial_attack(processor, model, image, target_class_
             optimizer.step()
 
             if step % 5 == 0:
-                print(f'Step {step}, CE Loss: {ce_loss.item():.4f}, L2: {l2_loss.item():.4f}, '
-                      f'Predicted: {model.config.id2label[predicted_class]}')
+                print(
+                    f"Step {step}, CE Loss: {ce_loss.item():.4f}, L2: {l2_loss.item():.4f}, "
+                    f"Predicted: {model.config.id2label[predicted_class]}"
+                )
 
         # Final clamped perturbation
         final_perturbation = torch.clamp(perturbation, -l_inf_bound, l_inf_bound).detach()
-        final_perturbed = torch.clamp(inputs['pixel_values'] + final_perturbation, 0, 1)
+        final_perturbed = torch.clamp(inputs["pixel_values"] + final_perturbation, 0, 1)
 
         return final_perturbation, final_perturbed, success
     else:
@@ -362,6 +387,7 @@ def create_constrained_adversarial_attack(processor, model, image, target_class_
         # - Ensure final pixel values stay in [0, 1]
         # - Track loss and predictions over time
         pass
+
 
 """
 <details>
@@ -382,25 +408,26 @@ regularization_strengths = [0.5, 2.0, 5.0]
 results = []
 
 for l2_reg in regularization_strengths:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Testing L2 regularization strength: {l2_reg}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     pert, perturbed, success = create_constrained_adversarial_attack(
-        processor, model, image, target_class_id,
-        steps=30, lr=0.05, l2_reg=l2_reg, l_inf_bound=0.1
+        processor, model, image, target_class_id, steps=30, lr=0.05, l2_reg=l2_reg, l_inf_bound=0.1
     )
 
-    results.append({
-        'l2_reg': l2_reg,
-        'perturbation': pert,
-        'perturbed_image': perturbed,
-        'success': success,
-        'l2_norm': pert.norm().item(),
-        'l_inf_norm': pert.abs().max().item()
-    })
+    results.append(
+        {
+            "l2_reg": l2_reg,
+            "perturbation": pert,
+            "perturbed_image": perturbed,
+            "success": success,
+            "l2_norm": pert.norm().item(),
+            "l_inf_norm": pert.abs().max().item(),
+        }
+    )
 
-#%%
+# %%
 """
 ### Exercise 1.5: Analyzing Attack Trade-offs
 
@@ -408,40 +435,42 @@ Let's analyze how different regularization strengths affect attack success and p
 """
 
 # Visualize results for different regularization strengths
-fig, axes = plt.subplots(len(results), 3, figsize=(12, 4*len(results)))
+fig, axes = plt.subplots(len(results), 3, figsize=(12, 4 * len(results)))
 
 for i, result in enumerate(results):
     # Original
-    axes[i, 0].imshow(image.numpy().transpose(1, 2, 0).astype('uint8'))
-    axes[i, 0].set_title(f'Original')
-    axes[i, 0].axis('off')
+    axes[i, 0].imshow(image.numpy().transpose(1, 2, 0).astype("uint8"))
+    axes[i, 0].set_title("Original")
+    axes[i, 0].axis("off")
 
     # Perturbation
-    pert_vis = result['perturbation'].squeeze().permute(1, 2, 0).numpy()
+    pert_vis = result["perturbation"].squeeze().permute(1, 2, 0).numpy()
     pert_vis = (pert_vis - pert_vis.min()) / (pert_vis.max() - pert_vis.min() + 1e-8)
     axes[i, 1].imshow(pert_vis)
-    axes[i, 1].set_title(f'Perturbation (L2 reg={result["l2_reg"]})')
-    axes[i, 1].axis('off')
+    axes[i, 1].set_title(f"Perturbation (L2 reg={result['l2_reg']})")
+    axes[i, 1].axis("off")
 
     # Perturbed
-    perturbed_vis = result['perturbed_image'].squeeze().permute(1, 2, 0).numpy()
+    perturbed_vis = result["perturbed_image"].squeeze().permute(1, 2, 0).numpy()
     axes[i, 2].imshow(perturbed_vis)
 
     # Get final prediction
-    outputs = model(pixel_values=result['perturbed_image'])
+    outputs = model(pixel_values=result["perturbed_image"])
     pred_idx = outputs.logits.argmax(-1).item()
     pred_class = model.config.id2label[pred_idx]
 
-    status = "✓" if result['success'] else "✗"
-    axes[i, 2].set_title(f'{status} Predicted: {pred_class}\nL2: {result["l2_norm"]:.3f}, L∞: {result["l_inf_norm"]:.3f}')
-    axes[i, 2].axis('off')
+    status = "✓" if result["success"] else "✗"
+    axes[i, 2].set_title(
+        f"{status} Predicted: {pred_class}\nL2: {result['l2_norm']:.3f}, L∞: {result['l_inf_norm']:.3f}"
+    )
+    axes[i, 2].axis("off")
 
 plt.tight_layout()
 plt.show()
 
 # Summary statistics
 print("\nAttack Summary:")
-print("="*60)
+print("=" * 60)
 for result in results:
     print(f"L2 Regularization: {result['l2_reg']}")
     print(f"  - Success: {'Yes' if result['success'] else 'No'}")
@@ -459,7 +488,7 @@ for result in results:
 - ask a TA for more directions if you have already implemented the first two above!
 """
 
-#%%
+# %%
 """
 ## Part 2: Image Watermarking in Diffusion Models
 
@@ -490,7 +519,8 @@ from diffusers import StableDiffusionPipeline, UNet2DConditionModel
 import matplotlib.pyplot as plt
 import numpy as np
 
-def setup_diffusion_pipeline():
+
+def setup_diffusion_pipeline() -> StableDiffusionPipeline:
     """Set up the Stable Diffusion pipeline."""
     pipe = StableDiffusionPipeline.from_pretrained("nota-ai/bk-sdm-v2-tiny", torch_dtype=torch.float16)
 
@@ -504,7 +534,8 @@ def setup_diffusion_pipeline():
 
     return pipe
 
-def generate_baseline_image(pipe, prompt, seed=8, steps=5):
+
+def generate_baseline_image(pipe: StableDiffusionPipeline, prompt: str, seed: int = 8, steps: int = 5) -> Image.Image:
     """
     Generate an image with the sd model.
 
@@ -530,6 +561,7 @@ def generate_baseline_image(pipe, prompt, seed=8, steps=5):
         # - Return the first generated image
         pass
 
+
 # Set up and test
 pipe = setup_diffusion_pipeline()
 prompt = "a black vase holding a bouquet of roses"
@@ -539,13 +571,13 @@ baseline_image = generate_baseline_image(pipe, prompt)
 plt.figure(figsize=(8, 8))
 plt.imshow(np.array(baseline_image))
 plt.title("Baseline Image (No Watermark)")
-plt.axis('off')
+plt.axis("off")
 plt.show()
 
 # Save for comparison
 baseline_image.save("baseline_image.png")
 
-#%%
+# %%
 """
 ### Exercise 2.2: Implementing Frequency-Domain Watermarking
 
@@ -563,16 +595,19 @@ The watermarking process:
 4. Convert back to spatial domain
 """
 
+
 class FrequencyWatermarker:
     """Watermarker that modifies specific frequency bands in UNet outputs."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the watermarker.
         """
         self.hook_handle = None
 
-    def watermark_hook(self, module, input, output):
+    def watermark_hook(
+        self, module: torch.nn.Module, input: Tuple[torch.Tensor, ...], output: Tuple[torch.Tensor, ...]
+    ) -> Tuple[torch.Tensor, ...]:
         """
         Hook function that modifies UNet output in frequency domain.
 
@@ -587,7 +622,7 @@ class FrequencyWatermarker:
             fft_shifted = torch.fft.fftshift(fft_output, dim=(-2, -1))
 
             # Modify specific frequency band
-            start, end = (10,30)
+            start, end = (10, 30)
             fft_shifted[:, start:end, :] *= 0.95
 
             # Convert back to spatial domain
@@ -611,13 +646,15 @@ class FrequencyWatermarker:
             # - Apply inverse FFT and modify the hook output
             pass
 
-    def attach(self, unet):
+    def attach(self, unet: torch.nn.Module) -> None:
         self.hook_handle = unet.register_forward_hook(self.watermark_hook)
 
-    def detach(self):
+    def detach(self) -> None:
         if self.hook_handle:
             self.hook_handle.remove()
             self.hook_handle = None
+
+
 """
 <details>
 <summary>Hint: how to fft</summary>
@@ -626,10 +663,13 @@ class FrequencyWatermarker:
 </details>
 """
 
-def generate_watermarked_image(pipe, prompt, watermarker, seed=8, steps=5):
+
+def generate_watermarked_image(
+    pipe: StableDiffusionPipeline, prompt: str, watermarker: FrequencyWatermarker, seed: int = 8, steps: int = 5
+) -> Image.Image:
     """Generate an image with watermarking applied."""
     # Extract UNet from pipeline
-    unet = pipe.components['unet']
+    unet = pipe.components["unet"]
 
     # Attach watermarker
     watermarker.attach(unet)
@@ -645,6 +685,7 @@ def generate_watermarked_image(pipe, prompt, watermarker, seed=8, steps=5):
 
     return image
 
+
 # Test watermarking
 watermarker = FrequencyWatermarker()
 watermarked_image = generate_watermarked_image(pipe, prompt, watermarker)
@@ -653,11 +694,11 @@ watermarked_image = generate_watermarked_image(pipe, prompt, watermarker)
 fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 axes[0].imshow(np.array(baseline_image))
 axes[0].set_title("Baseline (No Watermark)")
-axes[0].axis('off')
+axes[0].axis("off")
 
 axes[1].imshow(np.array(watermarked_image))
 axes[1].set_title("Watermarked")
-axes[1].axis('off')
+axes[1].axis("off")
 
 plt.tight_layout()
 plt.show()
@@ -665,7 +706,7 @@ plt.show()
 # Save watermarked image
 watermarked_image.save("watermarked_image.png")
 
-#%%
+# %%
 """
 ### Exercise 2.3: Analyzing Watermarks with FFT
 
@@ -677,7 +718,8 @@ watermarked_image.save("watermarked_image.png")
 Let's analyze the watermark by examining the frequency domain of both images. The watermark should be visible as modifications in specific frequency bands.
 """
 
-def compute_fft_magnitude_spectrum(image):
+
+def compute_fft_magnitude_spectrum(image: Union[Image.Image, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute the magnitude spectrum of an image's FFT.
 
@@ -690,7 +732,7 @@ def compute_fft_magnitude_spectrum(image):
     """
     if "SOLUTION":
         # Convert to numpy if needed
-        if hasattr(image, 'size'):  # PIL Image
+        if hasattr(image, "size"):  # PIL Image
             image_np = np.array(image)
         else:
             image_np = image
@@ -710,7 +752,8 @@ def compute_fft_magnitude_spectrum(image):
         # - Compute magnitude in dB (20 * log)
         pass
 
-def visualize_frequency_comparison(baseline_image, watermarked_image):
+
+def visualize_frequency_comparison(baseline_image: Image.Image, watermarked_image: Image.Image) -> np.ndarray:
     """Visualize and compare frequency domains of baseline and watermarked images."""
     # Compute FFT for both images
     mag_baseline, fft_baseline = compute_fft_magnitude_spectrum(baseline_image)
@@ -727,21 +770,21 @@ def visualize_frequency_comparison(baseline_image, watermarked_image):
     fig, axes = plt.subplots(1, 3, figsize=(12, 10))
 
     # Magnitude spectra
-    axes[0].imshow(mag_baseline_norm, cmap='gray')
-    axes[0].set_title('Baseline - Magnitude Spectrum')
-    axes[0].axis('off')
+    axes[0].imshow(mag_baseline_norm, cmap="gray")
+    axes[0].set_title("Baseline - Magnitude Spectrum")
+    axes[0].axis("off")
 
-    axes[1].imshow(mag_watermarked_norm, cmap='gray')
-    axes[1].set_title('Watermarked - Magnitude Spectrum')
-    axes[1].axis('off')
+    axes[1].imshow(mag_watermarked_norm, cmap="gray")
+    axes[1].set_title("Watermarked - Magnitude Spectrum")
+    axes[1].axis("off")
 
     # Difference heatmap
     magnitude_diff = np.abs(mag_baseline_norm - mag_watermarked_norm)
     magnitude_diff = magnitude_diff / (magnitude_diff.mean() + 1e-8)  # Normalize
 
-    im = axes[2].imshow(magnitude_diff, cmap='hot')
-    axes[2].set_title('Difference Heatmap')
-    axes[2].axis('off')
+    im = axes[2].imshow(magnitude_diff, cmap="hot")
+    axes[2].set_title("Difference Heatmap")
+    axes[2].axis("off")
     plt.colorbar(im, ax=axes[2], fraction=0.046)
 
     plt.tight_layout()
@@ -749,16 +792,17 @@ def visualize_frequency_comparison(baseline_image, watermarked_image):
 
     return magnitude_diff
 
+
 # Analyze the watermark
 print("Analyzing frequency domain differences...")
 diff_map = visualize_frequency_comparison(baseline_image, watermarked_image)
 
 # Print statistics
-print(f"\nWatermark Analysis:")
+print("\nWatermark Analysis:")
 print(f"Maximum difference in frequency domain: {diff_map.max():.4f}")
 print(f"Mean difference in frequency domain: {diff_map.mean():.4f}")
 
-#%%
+# %%
 """
 ### Exercise 2.4: Testing Watermark Robustness
 
@@ -777,7 +821,8 @@ as this exercise isn't very fun, so you can also just skim through the solution.
 from PIL import Image, ImageFilter
 import io
 
-def apply_image_transformation(image, transform_type, **kwargs):
+
+def apply_image_transformation(image: Image.Image, transform_type: str, **kwargs: Any) -> Image.Image:
     """
     Apply various transformations to test watermark robustness.
 
@@ -789,41 +834,42 @@ def apply_image_transformation(image, transform_type, **kwargs):
     Returns:
         transformed_image: Transformed PIL Image
     """
-    if transform_type == 'jpeg':
+    if transform_type == "jpeg":
         # JPEG compression
-        quality = kwargs.get('quality', 50)
+        quality = kwargs.get("quality", 50)
         buffer = io.BytesIO()
-        image.save(buffer, format='JPEG', quality=quality)
+        image.save(buffer, format="JPEG", quality=quality)
         buffer.seek(0)
         return Image.open(buffer)
 
-    elif transform_type == 'resize':
+    elif transform_type == "resize":
         # Resize down and back up
-        scale = kwargs.get('scale', 0.5)
+        scale = kwargs.get("scale", 0.5)
         orig_size = image.size
         small_size = (int(orig_size[0] * scale), int(orig_size[1] * scale))
         return image.resize(small_size, Image.Resampling.LANCZOS).resize(orig_size, Image.Resampling.LANCZOS)
 
-    elif transform_type == 'blur':
+    elif transform_type == "blur":
         # Gaussian blur
-        radius = kwargs.get('radius', 2)
+        radius = kwargs.get("radius", 2)
         return image.filter(ImageFilter.GaussianBlur(radius=radius))
 
-    elif transform_type == 'noise':
+    elif transform_type == "noise":
         # Add Gaussian noise
-        std = kwargs.get('std', 10)
+        std = kwargs.get("std", 10)
         img_array = np.array(image).astype(float)
         noise = np.random.normal(0, std, img_array.shape)
         noisy = np.clip(img_array + noise, 0, 255).astype(np.uint8)
         return Image.fromarray(noisy)
 
-def check_watermark_robustness(baseline_image, watermarked_image):
+
+def check_watermark_robustness(baseline_image: Image.Image, watermarked_image: Image.Image) -> List[Dict[str, Any]]:
     """Test watermark detection after various transformations."""
     transformations = [
-        ('jpeg', {'quality': 30}),
-        ('resize', {'scale': 0.5}),
-        ('blur', {'radius': 2}),
-        ('noise', {'std': 15})
+        ("jpeg", {"quality": 30}),
+        ("resize", {"scale": 0.5}),
+        ("blur", {"radius": 2}),
+        ("noise", {"std": 15}),
     ]
 
     results = []
@@ -847,22 +893,25 @@ def check_watermark_robustness(baseline_image, watermarked_image):
 
         # Measure watermark strength in the target frequency band
         center = np.array(diff.shape) // 2
-        y, x = np.ogrid[:diff.shape[0], :diff.shape[1]]
+        y, x = np.ogrid[: diff.shape[0], : diff.shape[1]]
 
         # Create mask for frequency band 3-25
-        dist_from_center = np.sqrt((x - center[1])**2 + (y - center[0])**2)
+        dist_from_center = np.sqrt((x - center[1]) ** 2 + (y - center[0]) ** 2)
         band_mask = (dist_from_center >= 3) & (dist_from_center <= 25)
 
         watermark_strength = diff[band_mask].mean() if band_mask.any() else 0
 
-        results.append({
-            'transform': transform_type,
-            'params': params,
-            'strength': watermark_strength,
-            'transformed_image': transformed_watermarked
-        })
+        results.append(
+            {
+                "transform": transform_type,
+                "params": params,
+                "strength": watermark_strength,
+                "transformed_image": transformed_watermarked,
+            }
+        )
 
     return results
+
 
 # Test robustness
 print("Testing watermark robustness...")
@@ -874,34 +923,34 @@ axes = axes.flatten()
 
 # Original watermarked image
 axes[0].imshow(np.array(watermarked_image))
-axes[0].set_title('Original Watermarked')
-axes[0].axis('off')
+axes[0].set_title("Original Watermarked")
+axes[0].axis("off")
 
 # Transformed images
 for i, result in enumerate(robustness_results):
-    axes[i+1].imshow(np.array(result['transformed_image']))
+    axes[i + 1].imshow(np.array(result["transformed_image"]))
     transform_name = f"{result['transform'].capitalize()}"
-    param_str = ', '.join(f"{k}={v}" for k, v in result['params'].items())
-    axes[i+1].set_title(f'{transform_name} ({param_str})\nStrength: {result["strength"]:.3f}')
-    axes[i+1].axis('off')
+    param_str = ", ".join(f"{k}={v}" for k, v in result["params"].items())
+    axes[i + 1].set_title(f"{transform_name} ({param_str})\nStrength: {result['strength']:.3f}")
+    axes[i + 1].axis("off")
 
 # Hide unused subplot
-axes[-1].axis('off')
+axes[-1].axis("off")
 
 plt.tight_layout()
 plt.show()
 
 # Summary
 print("\nRobustness Summary:")
-print("="*50)
+print("=" * 50)
 for result in robustness_results:
     print(f"{result['transform'].capitalize()}: strength = {result['strength']:.4f}")
-    if result['strength'] > 0.01:
+    if result["strength"] > 0.01:
         print("  ✓ Watermark detected")
     else:
         print("  ✗ Watermark lost")
 
-#%%
+# %%
 """
 ## Summary and Next Steps
 
