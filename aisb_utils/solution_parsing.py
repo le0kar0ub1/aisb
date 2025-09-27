@@ -70,6 +70,8 @@ class StripSolutions(cst.CSTTransformer):
                 return cst.SimpleStatementLine(body=[cst.Expr(value=cst.SimpleString('"TODO: YOUR CODE HERE"'))])
             if test_value == "SKIP":
                 return cst.RemovalSentinel.REMOVE
+            if test_value == "REFERENCE_ONLY":
+                return cst.RemovalSentinel.REMOVE
         return updated_node
 
     def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
@@ -100,6 +102,8 @@ class ExtractSolutionBlocks(cst.CSTTransformer):
                 return cst.FlattenSentinel(updated_node.body.body)
             if test_value == "SKIP":
                 return cst.RemovalSentinel.REMOVE
+            if test_value == "REFERENCE_ONLY":
+                return cst.FlattenSentinel(updated_node.body.body)
         return updated_node
 
 
@@ -164,6 +168,7 @@ TOC_LEVELS = [
 TOC_RE = re.compile(r"^(#+) (.+)$")
 TOC_MARKER = "<!-- toc -->"
 SLUG_REMOVE_CHARS_REGEX = re.compile(r"[!\"#$%&'()*+,./:;<=>?@\[\\\]^`{|}~]+")
+
 
 @dataclass
 class TOCEntry:
