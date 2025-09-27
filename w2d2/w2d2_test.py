@@ -30,7 +30,7 @@ def test_parse_image_reference(parse_image_reference):
     
     # Test 1: Docker Hub shorthand
     registry, image, tag = parse_image_reference("hello-world:latest")
-    assert registry == "mirror.gcr.io", f"Expected registry-1.docker.io, got {registry}"
+    assert registry == "mirror.gcr.io", f"Expected mirror.gcr.io, got {registry}"
     assert image == "library/hello-world", f"Expected library/hello-world, got {image}"
     assert tag == "latest", f"Expected latest, got {tag}"
     print("✓ Docker Hub shorthand parsing works")
@@ -44,7 +44,7 @@ def test_parse_image_reference(parse_image_reference):
     
     # Test 3: No tag specified (should default to latest)
     registry, image, tag = parse_image_reference("alpine")
-    assert registry == "mirror.gcr.io", f"Expected registry-1.docker.io, got {registry}"
+    assert registry == "mirror.gcr.io", f"Expected mirror.gcr.io, got {registry}"
     assert image == "library/alpine", f"Expected library/alpine, got {image}"
     assert tag == "latest", f"Expected latest, got {tag}"
     print("✓ Default tag handling works")
@@ -59,7 +59,7 @@ def test_get_auth_token(get_auth_token):
     print("Testing authentication token retrieval...")
     
     # Test 1: Docker Hub authentication
-    headers = get_auth_token("registry-1.docker.io", "library/hello-world")
+    headers = get_auth_token("mirror.gcr.io", "library/hello-world")
     assert "Authorization" in headers, "Authorization header missing"
     assert headers["Authorization"].startswith("Bearer "), "Token should be Bearer type"
     print("✓ Docker Hub token retrieval works")
@@ -81,7 +81,7 @@ def test_get_target_manifest(get_target_manifest, get_auth_token):
     registry = "mirror.gcr.io"
     image = "library/hello-world"
     tag = "latest"
-    headers = get_auth_token(registry, image)
+    headers = {} # get_auth_token(registry, image)
     
     # Test 1: Find amd64 manifest
     digest = get_target_manifest(registry, image, tag, headers, "amd64")
@@ -115,7 +115,7 @@ def test_get_manifest_layers(get_manifest_layers, get_auth_token, get_target_man
     registry = "mirror.gcr.io"
     image = "library/hello-world"
     tag = "latest"
-    headers = get_auth_token(registry, image)
+    headers = {} # get_auth_token(registry, image)
     
     
     # Get manifest digest
@@ -154,7 +154,7 @@ def test_download_and_extract_layers(download_and_extract_layers, get_auth_token
     output_dir = "./test_extracted"
     
     # Get authentication
-    headers = get_auth_token(registry, image)
+    headers = {} # get_auth_token(registry, image)
     
     # Get manifest
     manifest_digest = get_target_manifest(registry, image, tag, headers, TARGET_ARCH, TARGET_VARIANT)

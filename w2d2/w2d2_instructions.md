@@ -401,14 +401,14 @@ print("✅ Environment checks passed")
 Parse different Docker image reference formats and extract registry, image, and tag components.
 
 Docker images can be referenced in multiple formats:
-- Full registry URLs: `https://registry-1.docker.io/v2/library/hello-world/manifests/latest`
+- Full registry URLs: `https://mirror.gcr.io/v2/library/hello-world/manifests/latest`
 - Docker Hub format: `hello-world:latest` or `library/hello-world:latest`
 - Custom registries: `gcr.io/google-containers/pause:latest`
 
 <details>
 <summary>Vocabulary: Docker Image References</summary><blockquote>
 
-- **Registry**: The server that stores Docker images (e.g., `registry-1.docker.io` for Docker Hub)
+- **Registry**: The server that stores Docker images (e.g., `mirror.gcr.io` for Docker Hub)
 - **Repository**: A collection of related images with the same name but different tags (e.g., `ubuntu`)
 - **Tag**: A label that points to a specific version of an image (defaults to "latest")
 - **Manifest**: Metadata about an image including its layers and configuration
@@ -439,17 +439,17 @@ def parse_image_reference(image_ref: str) -> Tuple[str, str, str]:
         Tuple of (registry, image, tag)
         
     Examples:
-        parse_image_reference("hello-world:latest") -> ("registry-1.docker.io", "library/hello-world", "latest")
+        parse_image_reference("hello-world:latest") -> ("mirror.gcr.io", "library/hello-world", "latest")
         parse_image_reference("gcr.io/project/image:v1.0") -> ("gcr.io", "project/image", "v1.0")
     """
     # TODO: Implement image reference parsing
     # - Check if the image reference starts with 'http' to identify full URLs
     # - For full URLs, remove protocol and split by '/' to extract components
     # - For custom registries, look for dots in the first part (e.g., gcr.io)
-    # - For Docker Hub images, default to 'registry-1.docker.io' and add 'library/' prefix if needed
+    # - For Docker Hub images, default to 'mirror.gcr.io' and add 'library/' prefix if needed
     # - Use rsplit(':', 1) to handle image names that might contain colons
     # - Default to 'latest' tag if none is specified
-    return "registry-1.docker.io", "library/hello-world", "latest"  # Placeholder return
+    return "mirror.gcr.io", "library/hello-world", "latest"  # Placeholder return
 ```
 
 <details>
@@ -463,7 +463,7 @@ def parse_image_reference(image_ref: str) -> Tuple[str, str, str]:
 - Step 2: For non-URL formats, detect custom registry vs Docker Hub
   - If '/' in image_ref AND first part contains dots: it's a custom registry
   - Split by '/' once: registry = first part, image_and_tag = second part
-  - If no custom registry detected: registry = 'registry-1.docker.io', image_and_tag = image_ref
+  - If no custom registry detected: registry = 'mirror.gcr.io', image_and_tag = image_ref
 
 - Step 3: Handle Docker Hub library prefix
   - If using Docker Hub and no '/' in image_and_tag: prefix with "library/"
@@ -475,8 +475,8 @@ def parse_image_reference(image_ref: str) -> Tuple[str, str, str]:
 - Step 5: Return tuple (registry, image, tag)
 
 - Key edge cases to handle:
-  - "hello-world" → ("registry-1.docker.io", "library/hello-world", "latest")
-  - "ubuntu:20.04" → ("registry-1.docker.io", "library/ubuntu", "20.04")
+  - "hello-world" → ("mirror.gcr.io", "library/hello-world", "latest")
+  - "ubuntu:20.04" → ("mirror.gcr.io", "library/ubuntu", "20.04")
   - "gcr.io/project/image:tag" → ("gcr.io", "project/image", "tag")
   - "my-registry.com/org/repo" → ("my-registry.com", "org/repo", "latest")
 </blockquote></details>
@@ -512,7 +512,7 @@ The authentication flow:
 - **Bearer Token**: A type of access token that grants access to specific resources to whoever possesses it, without requiring additional proof of identity
 - **Scope**: Defines what actions the token allows (e.g., `repository:image:pull`)
 - **Auth Server**: The server that issues tokens (auth.docker.io for Docker Hub)
-- **Registry Server**: The server that stores actual image data (registry-1.docker.io)
+- **Registry Server**: The server that stores actual image data (mirror.gcr.io)
 - **Authorization Header**: HTTP header that contains the Bearer token
 
 </blockquote></details>
@@ -559,7 +559,7 @@ def get_auth_token(registry: str, image: str) -> Dict[str, str]:
     Get authentication headers for Docker registry access.
     
     Args:
-        registry: Registry hostname (e.g., "registry-1.docker.io")
+        registry: Registry hostname (e.g., "mirror.gcr.io")
         image: Image name (e.g., "library/hello-world")
         
     Returns:
@@ -567,7 +567,7 @@ def get_auth_token(registry: str, image: str) -> Dict[str, str]:
     """
     # TODO: Authentication implementation
     # 1. Initialize empty headers dictionary
-    # 2. Check if registry is Docker Hub (registry-1.docker.io)
+    # 2. Check if registry is Docker Hub (mirror.gcr.io)
     # 3. For Docker Hub, construct token URL with service and scope parameters
     # 4. Make HTTP request to auth.docker.io/token
     # 5. Parse JSON response to extract token
@@ -583,7 +583,7 @@ test_get_auth_token(get_auth_token)
 <summary>Hints</summary><blockquote>
 
 - Create empty headers = {}
-- If registry == 'registry-1.docker.io':
+- If registry == 'mirror.gcr.io':
   - Build URL: f"https://auth.docker.io/token?service=registry.docker.io&scope=repository:{image}:pull"
   - Get token: requests.get(token_url).json()['token']
   - Add header: headers['Authorization'] = f'Bearer {token}'
@@ -629,7 +629,7 @@ Understanding Docker's multi-architecture support is crucial for modern containe
 
 Docker registries use a standardized API format for accessing manifests:
 - Format: `https://{registry}/v2/{image}/manifests/{tag}`
-- Example: `https://registry-1.docker.io/v2/library/hello-world/manifests/latest`
+- Example: `https://mirror.gcr.io/v2/library/hello-world/manifests/latest`
 - **What it does**: Fetches the manifest list containing all available architectures for an image
 
 **2. Understanding Multi-Architecture Manifests**
@@ -750,13 +750,13 @@ Once you have the manifest digest, you need to fetch the actual manifest documen
 **1. Building the Manifest URL**
 Use the manifest digest to fetch the specific manifest:
 - Format: `https://{registry}/v2/{image}/manifests/{manifest_digest}`
-- Example: `https://registry-1.docker.io/v2/library/hello-world/manifests/sha256:abc123...`
+- Example: `https://mirror.gcr.io/v2/library/hello-world/manifests/sha256:abc123...`
 - **What it does**: Fetches the specific manifest document for an architecture
 
 **2. Setting the Accept Header**
 
 Docker registries require specific content type headers:
-- Header: `Accept: application/vnd.docker.distribution.manifest.v2+json`
+- Header: `Accept: application/vnd.docker.distribution.manifest.v2+json,application/vnd.oci.image.manifest.v1+json`
 - **Why needed**: Tells the registry which manifest format version to return
 - **Important**: Without this header, you might get an incompatible manifest format
 
@@ -851,7 +851,7 @@ Think of Docker images like a layered cake! Each layer adds something new to the
 
 Think of this like creating an address to find a package online:
 - Format: `https://{registry}/v2/{image}/blobs/{digest}`
-- Example: `https://registry-1.docker.io/v2/library/hello-world/blobs/sha256:abc123...`
+- Example: `https://mirror.gcr.io/v2/library/hello-world/blobs/sha256:abc123...`
 - **What it means**: Just like how you need a complete address to mail a letter, you need the full URL to download a Docker layer
 
 **2. Unpacking the Compressed Files**
@@ -1071,7 +1071,6 @@ Implement the `create_cgroup` function that creates a basic cgroup with memory l
 - To create a cgroup, you need to create directories and write to control files
 - The `cgroup.subtree_control` file controls which controllers are enabled for child cgroups
 - The `memory.max` file sets the memory limit for the cgroup
-```
 
 
 ```python
