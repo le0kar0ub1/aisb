@@ -16,6 +16,116 @@ By the end of this module, you'll be able to:
 3. Overwrite return addresses to control program flow
 4. Understand modern security mitigations
 
+## Install Ghidra
+
+**You should install Ghidra on your local machine not in the dev container.**
+
+Ghidra is a free and open-source reverse engineering tool developed by the NSA. Here's how to install it on different platforms:
+
+<details>
+<summary><strong>macOS Installation</strong></summary><blockquote>
+
+1. **Download Ghidra:**
+   - Visit: https://github.com/NationalSecurityAgency/ghidra/releases
+   - Download latest `ghidra_X.X.X_PUBLIC_YYYYMMDD.zip`
+
+2. **Extract and Install:**
+   ```bash
+   unzip ghidra_X.X.X_PUBLIC_YYYYMMDD.zip
+   sudo mv ghidra_X.X.X_PUBLIC /Applications/
+   chmod +x /Applications/ghidra_X.X.X_PUBLIC/ghidraRun
+   ```
+
+3. **Install Java (Required):**
+   ```bash
+   brew install openjdk@11  # or download from Oracle/OpenJDK
+   ```
+
+4. **Run Ghidra:**
+   ```bash
+   ./ghidraRun  # or /Applications/ghidra_X.X.X_PUBLIC/ghidraRun
+   ```
+
+</blockquote></details>
+
+<details>
+<summary><strong>Linux Installation</strong></summary><blockquote>
+
+1. **Download Ghidra:**
+   ```bash
+   wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_11.0.4_build/ghidra_11.0.4_PUBLIC_20230928.zip
+   # or: curl -L -O [same-url]
+   ```
+
+2. **Extract and Install:**
+   ```bash
+   unzip ghidra_11.0.4_PUBLIC_20230928.zip
+   sudo mv ghidra_11.0.4_PUBLIC /opt/
+   chmod +x /opt/ghidra_11.0.4_PUBLIC/ghidraRun
+   ```
+
+3. **Install Java (Required):**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install openjdk-11-jdk
+
+   # CentOS/RHEL/Fedora
+   sudo yum install java-11-openjdk-devel  # or dnf for newer versions
+
+   # Arch Linux
+   sudo pacman -S jdk11-openjdk
+   ```
+
+4. **Create Desktop Entry (Optional):**
+   ```bash
+   cat > ~/.local/share/applications/ghidra.desktop << EOF
+   [Desktop Entry]
+   Name=Ghidra
+   Comment=Software Reverse Engineering Framework
+   Exec=/opt/ghidra_11.0.4_PUBLIC/ghidraRun
+   Icon=/opt/ghidra_11.0.4_PUBLIC/support/ghidra.png
+   Terminal=false
+   Type=Application
+   Categories=Development;
+   EOF
+   ```
+
+5. **Run Ghidra:**
+   ```bash
+   ./ghidraRun  # or /opt/ghidra_11.0.4_PUBLIC/ghidraRun
+   ```
+
+</blockquote></details>
+
+<details>
+<summary><strong>Windows Installation</strong></summary><blockquote>
+
+1. **Download Ghidra:**
+   - Visit: https://github.com/NationalSecurityAgency/ghidra/releases
+   - Download latest `ghidra_X.X.X_PUBLIC_YYYYMMDD.zip`
+
+2. **Extract:**
+   - Extract to `C:\ghidra\` or `C:\Program Files\Ghidra\`
+   - Should have folder like `ghidra_11.0.4_PUBLIC`
+
+3. **Install Java (Required):**
+   - Download Java 11+ from:
+     - Oracle JDK: https://www.oracle.com/java/technologies/downloads/
+     - OpenJDK: https://adoptium.net/
+   - Install JDK (not JRE)
+   - Verify: `java -version` in Command Prompt
+
+4. **Run Ghidra:**
+   - Navigate to Ghidra folder
+   - Double-click `ghidraRun.bat`
+   - If Java errors: set JAVA_HOME environment variable
+
+5. **Create Desktop Shortcut (Optional):**
+   - Right-click `ghidraRun.bat` → "Create shortcut"
+   - Move shortcut to Desktop
+
+</blockquote></details>
+
 Let's start by setting up our helper functions and understanding the tools we'll use.
 
 Copy these functions to your solutions file:
@@ -34,14 +144,11 @@ def exec_sh(command: str, timeout: Optional[int] = 30) -> subprocess.CompletedPr
     """Execute a shell command and return the result."""
     return subprocess.run(command, shell=True, capture_output=True, text=True, check=False, timeout=timeout)
 
-def compile_vulnerable_binary(source_file: str, output_file: str, extra_flags: str = "") -> bool:
-    def exec_sh(command: str, timeout: Optional[int] = 30) -> subprocess.CompletedProcess:
-        """Execute a shell command and return the result."""
-        return subprocess.run(command, shell=True, capture_output=True, text=True, check=False, timeout=timeout)
 
+def compile_vulnerable_binary(source_file: str, output_file: str, extra_flags: str = "") -> bool:
     """Compile a C program with security features disabled for educational purposes."""
     flags = "-fno-stack-protector -z execstack -no-pie -g"
-    cmd = f"gcc {flags} {extra_flags} -o {output_file} {source_file}"
+    cmd = f"cd w2d1; gcc {flags} {extra_flags} -o {output_file} {source_file}"
     result = exec_sh(cmd)
     return result.returncode == 0
 
@@ -50,10 +157,10 @@ def hex_dump(data: bytes, start_address: int = 0) -> str:
     """Create a hex dump of binary data."""
     lines = []
     for i in range(0, len(data), 16):
-        hex_part = ' '.join(f'{b:02x}' for b in data[i:i + 16])
-        ascii_part = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in data[i:i + 16])
+        hex_part = " ".join(f"{b:02x}" for b in data[i : i + 16])
+        ascii_part = "".join(chr(b) if 32 <= b <= 126 else "." for b in data[i : i + 16])
         lines.append(f"{start_address + i:08x}: {hex_part:<48} |{ascii_part}|")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 ```
 
 ## Exercise 1: Understanding Stack Layout and Buffer Overflows
@@ -518,7 +625,8 @@ def check_binary_protections(binary_path: str) -> dict:
     pass
 from w2d1_re_test import test_protection_checking
 
-test_protection_checking(exec_sh)
+
+test_protection_checking(exec_sh, check_binary_protections)
 ```
 
 ## Exercise 6: Bypassing Protections (optional)

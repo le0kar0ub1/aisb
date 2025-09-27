@@ -1,4 +1,32 @@
-# W2D1 - Securing Model Weights (and Reverse engineering)
+```python
 
-Today's content is split into two parts - reading the Securing Model Weights report by RAND, and some exercises on reverse engineering.
-Aim to spend at least half of today on the Securing Model Weights; and the remaining time on reverse engineering.
+import subprocess
+from typing import Optional
+
+
+def exec_sh(command: str, timeout: Optional[int | None] = 30, check_retcode=True) -> subprocess.CompletedProcess:
+    """
+    Execute shell commands with consistent parameters.
+
+    Args:
+        command: Shell command to execute (can be multiline)
+        timeout: Optional timeout in seconds
+
+    Returns:
+        CompletedProcess object with result
+    """
+
+    return subprocess.run(command, shell=True, capture_output=True, text=True, check=False, timeout=timeout)
+```
+
+## Buffer overflow
+
+TODO: YOUR CODE HERE
+
+
+##
+
+TODO: YOUR CODE HERE
+
+
+<!-- FIXME: Not working -->
