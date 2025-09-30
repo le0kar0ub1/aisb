@@ -70,6 +70,8 @@ class StripSolutions(cst.CSTTransformer):
                 return cst.SimpleStatementLine(body=[cst.Expr(value=cst.SimpleString('"TODO: YOUR CODE HERE"'))])
             if test_value == "SKIP":
                 return cst.RemovalSentinel.REMOVE
+            if test_value == "REFERENCE_ONLY":
+                return cst.RemovalSentinel.REMOVE
         return updated_node
 
     def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
@@ -100,6 +102,8 @@ class ExtractSolutionBlocks(cst.CSTTransformer):
                 return cst.FlattenSentinel(updated_node.body.body)
             if test_value == "SKIP":
                 return cst.RemovalSentinel.REMOVE
+            if test_value == "REFERENCE_ONLY":
+                return cst.FlattenSentinel(updated_node.body.body)
         return updated_node
 
 
@@ -163,7 +167,7 @@ TOC_LEVELS = [
 
 TOC_RE = re.compile(r"^(#+) (.+)$")
 TOC_MARKER = "<!-- toc -->"
-SLUG_ALLOWED_CHARS = string.ascii_letters + "-"
+SLUG_REMOVE_CHARS_REGEX = re.compile(r"[!\"#$%&'()*+,./:;<=>?@\[\\\]^`{|}~]+")
 
 
 @dataclass
@@ -229,7 +233,7 @@ class InstructionMaker(cst.CSTVisitor):
                 text = self._maybe_add_toc(text)
                 warnings = check_html_tags(text)
                 if warnings:
-                    print(f"Bad HTML tags in statement")
+                    print("Bad HTML tags in statement")
                     print("\n".join(warnings))
                 self.snippets.append(Snippet("markdown", text))
 
@@ -274,7 +278,7 @@ class InstructionMaker(cst.CSTVisitor):
                 count = self.counters[prefix]
                 slug = f"{prefix}-{count}" if count > 0 else prefix
                 slug = slug.lower()  # VSCode only wants lowercase slugs
-                slug = "".join(c for c in slug if c in SLUG_ALLOWED_CHARS)
+                slug = SLUG_REMOVE_CHARS_REGEX.sub("", slug)
                 level = len(pounds) - 2
                 if level < 0:
                     continue  # Don't need to repeat toplevel

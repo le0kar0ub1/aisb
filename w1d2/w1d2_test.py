@@ -3,10 +3,26 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+import os
+import base64
+import time
+from typing import Optional, Dict, Any
+from unittest.mock import patch, MagicMock
 import requests
+import threading
+from mitmproxy import http
+from typing import List
+import re
+from ftplib import FTP
+from scapy.all import IP
+import importlib
+from unittest.mock import Mock, patch
+from scapy.all import IP, TCP, UDP, Raw
 import dns.resolver as dns_resolver
 from unittest.mock import patch, MagicMock
+from mitmproxy import dns as mitmproxydns
 import base64
+from scapy.all import IP, ICMP, sr1, Raw
 
 
 
@@ -116,6 +132,8 @@ def test_make_evil_request_https(make_evil_request_https):
 
 def test_make_evil_request_pinned(make_evil_request_pinned):
     """Test the certificate pinning implementation."""
+    import re
+
     print("Testing make_evil_request_pinned...")
 
     # Test 1: Successful request with correct certificate
@@ -131,7 +149,8 @@ def test_make_evil_request_pinned(make_evil_request_pinned):
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
 
-        assert args[0] == "https://evil.aisb.dev/exfiltrate", "URL should use HTTPS"
+        assert args[0].startswith("https://"), "URL should use HTTPS"
+        assert re.match(r"https://ev(i|1)l\.aisb\.dev/exfiltrate", args[0]), "URL should be correct"
         assert kwargs.get("params") == {"data": "pinned_secret_456"}, "Query parameters should be correct"
         assert kwargs.get("verify") == "isrg-root-x1.pem", "Should use certificate pinning"
         assert result == "Pinned connection successful", "Should return response text"

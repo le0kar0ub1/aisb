@@ -51,6 +51,54 @@ You'll explore sophisticated techniques for hiding communications in legitimate 
 > - Implement DNS tunneling and TXT record abuse
 > - Use ICMP for covert data transmission
 
+## Introduction to networking
+
+### The OSI Model
+
+The Open Systems Interconnection (OSI) model is a conceptual framework that standardizes network communications into seven distinct layers. Understanding this model is crucial for network security and protocol analysis.
+
+![The OSI Model](img/osi_model.png)
+
+**Layer 7 - Application Layer**
+- Provides network services directly to end-users and applications
+- Examples: HTTP/HTTPS, DNS, SMTP, FTP, SSH
+- Security concerns: Application-level attacks, protocol vulnerabilities
+- In our exercises: DNS tunneling operates at this layer
+
+**Layer 6 - Presentation Layer**
+- Handles data encryption, compression, and translation
+- Examples: SSL/TLS, JPEG, ASCII, encryption protocols
+- Security concerns: Encryption weaknesses, data format vulnerabilities
+
+**Layer 5 - Session Layer**
+- Manages sessions between applications
+- Examples: NetBIOS, RPC, SQL sessions
+- Security concerns: Session hijacking, replay attacks
+
+**Layer 4 - Transport Layer**
+- Provides reliable data transfer and flow control
+- Examples: TCP, UDP, SCTP
+- Security concerns: Port scanning, TCP sequence attacks
+- In our exercises: We'll work with both TCP and UDP protocols
+
+**Layer 3 - Network Layer**
+- Handles routing and logical addressing
+- Examples: IP, ICMP, OSPF, BGP
+- Security concerns: IP spoofing, routing attacks
+- In our exercises: ICMP tunneling operates primarily at this layer
+
+**Layer 2 - Data Link Layer**
+- Provides node-to-node data transfer and error correction
+- Examples: Ethernet, Wi-Fi, ARP, switches
+- Security concerns: MAC spoofing, ARP poisoning, VLAN hopping
+
+**Layer 1 - Physical Layer**
+- Handles the physical transmission of data
+- Examples: Cables, radio frequencies, network interfaces
+- Security concerns: Physical access, electromagnetic interference
+
+Reference: https://en.wikipedia.org/wiki/OSI_model
+
 ## Preliminaries
 
 Quite a few exercises await you today. You will likely not be able to finish all of them. That's ok! Focus on the exercises that interest you most and use help when you get stuck. Just bear in mind that the exercises build on each other, so make sure you read through the instructions even if you want to skip something.
@@ -62,6 +110,7 @@ Today, your solution will consist of three files. **Create them now:**
 - `w1d2_answers_nfqueue.py`: This file will contain code for low-level network packet filtering you will implement later.
 
 **Create the files before running `docker-compose up`.**. Otherwise, directories of the same name will be created that you will need to remove first.
+You don't need to run the `docker-compose up` command yet.
 
 ### Lab Architecture
 The lab today will simulate a network where a node, controlled by the attacker, connects to the internet through a network proxy, controlled by the defender. This will be simulated by two Docker containers running on the same network.
@@ -95,12 +144,62 @@ You may inspect the [docker-compose.yml](docker-compose.yml) file to see how the
                                    Internet
 ```
 
-### Troubleshooting
+### Understanding Docker Compose
+
+**Docker Compose** is a tool for defining and running multi-container Docker applications. Instead of managing each container individually with separate `docker run` commands, Docker Compose allows you to define your entire application stack in a single YAML file (`docker-compose.yaml`) and manage all containers together.
+
+#### Key Concepts
+- **Services**: Each container in your application (e.g., `agent`, `mitmproxy`)
+- **Networks**: Virtual networks that allow containers to communicate
+- **Volumes**: Shared storage between your host machine and containers
+- **Environment Variables**: Configuration passed to containers
+
+#### What Our Current Docker Compose Setup Does
+
+Our `docker-compose.yaml` file defines a **man-in-the-middle (MITM) attack simulation environment** with two main services:
+
+1. **Agent Service** (`agent`)
+- **Purpose**: Acts as a client that makes network requests (the "victim" in our MITM scenarios)
+- **Image**: Built from `Dockerfile` in the current directory
+- **Key Features**:
+  - Runs your Python agent code (`w1d2_answers_agent.py`)
+  - Has network admin capabilities (`NET_ADMIN`) to modify network traffic
+  - Exposes port 8081 for the mitmweb interface
+  - Can be configured to route traffic through the proxy (via environment variables)
+
+2. **MitmProxy Service** (`mitmproxy`)
+- **Purpose**: Acts as the intercepting proxy that can capture, modify, and analyze HTTP/HTTPS traffic
+- **Image**: Built from `Dockerfile_mitmproxy`
+- **Key Features**:
+  - Shares the same network namespace as the agent (`network_mode: "service:agent"`)
+  - Runs on port 8080 to intercept traffic
+  - Executes custom Python rules (`w1d2_answers_mitmproxy.py`) to modify requests/responses
+  - Can handle both HTTP and HTTPS traffic (with proper certificate setup)
+
+3. **Network Configuration**
+- **Custom Bridge Network**: Creates an isolated network (`mitm-network`) with subnet `172.25.0.0/16`
+- **Shared Network Namespace**: Both containers can communicate as if they were on the same machine
+- **Port Mapping**: Exposes the mitmweb interface on `localhost:8081` for monitoring traffic
+
+#### Why This Architecture?
+This setup simulates a realistic scenario where:
+1. The **agent** represents a client application making network requests
+2. The **mitmproxy** sits between the agent and the internet, intercepting all traffic
+3. You can modify, log, or block traffic in real-time using Python scripts
+4. The isolated network ensures your experiments don't affect other applications
+
+#### Troubleshooting
 Today's setup is a bit more complicated. If you run into issues, try some of these steps:
 - If you have problems installing the `docker-in-docker` feature in your devcontainer, comment out the respective line (`"ghcr.io/devcontainers/features/docker-in-docker:1": {}`) in the [devcontainer.json](../.devcontainer/devcontainer.json) file. Without it, you won't be able to run docker commands inside the devcontainer, but you should still be able to run them from the host machine (e.g., outside of VS Code).
 - Stop your containers with Ctrl+C (if they are in foreground) or `docker-compose down` (if they are in background), and start them again with container rebuild: `docker-compose up --build`.
 - Make sure you have the latest version of the repository pulled. Try "Dev Containers: Rebuild and Reopen in Container" action in VS Code.
 - If you cannot start the containers with `docker-compose up` inside the Dev Container, try running it from the host machine instead. You can do this by opening a terminal in the `w1d2` directory outside of VS Code and running `docker compose up --build`.
+
+#### For Further Reading
+- [Docker Compose Official Documentation](https://docs.docker.com/compose/)
+- [Docker Compose File Reference](https://docs.docker.com/compose/compose-file/)
+- [MitmProxy Documentation](https://docs.mitmproxy.org/)
+- [Docker Networking Guide](https://docs.docker.com/network/)
 
 ### Side-note: Pair programming
 <details>
@@ -123,15 +222,12 @@ You had an opportunity to pair up with a partner on your first day. Now that you
 """
 ## 1️⃣ Network Traffic Analysis with Wireshark
 """
-import os
+if "REFERENCE_ONLY":
+    import os
 
-if "SOLUTION":
     IS_IN_AGENT = os.getenv("CONTAINER") == "agent"
     IS_IN_MITMPROXY = os.getenv("CONTAINER") == "mitmproxy"
     IS_IN_NFQUEUE = os.getenv("CONTAINER") == "nfqueue"
-else:
-    pass  # Ignore this line
-
 """
 ### Exercise 1: Making HTTP Requests to External Servers
 
@@ -265,7 +361,7 @@ exfiltrate_data = make_evil_request
 
 # %%
 """
-#### Exercise 1.1: Keep the Agent Running
+#### Keep the Agent Running
 At this point, you have a function that simulates an AI agent trying to exfiltrate data by making HTTP requests to an external server. Let's run it continuously from the `agent` container.
 
 **Add the following code to your `w1d2_answers_agent.py` file** to run the agent:
@@ -553,7 +649,7 @@ In this exercise, you've learned:
 
 - [Wireshark User Guide](https://www.wireshark.org/docs/wsug_html_chunked/)
 - [mitmproxy Documentation](https://docs.mitmproxy.org/stable/)
-- [OWASP Proxy Guide](https://owasp.org/www-community/Proxy)
+- [Wikpedia proxy server](https://en.wikipedia.org/wiki/Proxy_server)
 
 """
 
@@ -730,7 +826,8 @@ First, we need to configure the agent to use our proxy for HTTPS traffic as well
 
 1. Add HTTPS proxy configuration by **uncommenting this line in docker-compose.yml**:
    ```yaml
-   - HTTPS_PROXY=http://mitmproxy:8080  # Add this line
+   - HTTPS_PROXY=http://localhost:8080  # Add this line if you run outside of the docker container
+   - HTTPS_PROXY=http://mitmproxy:8080  # Add this line if you run inside of the docker container
    ```
 
 2. **Re-run the containers**: `docker-compose up`
@@ -873,6 +970,7 @@ Let's verify that we can now see the HTTPS traffic:
 1. **Use mitmproxy's web interface**:
    - In the `docker-compose.yaml` file, change the command to mitmweb instead of mitmdump
    - Open http://localhost:8081 in your browser
+   - The login and password can be found in the `docker-compose.yaml` file (web_username and web_password parameters)
    - You should see all intercepted HTTPS requests
    - Click on a request to see full details including:
      - Decrypted request headers
@@ -973,6 +1071,8 @@ def make_evil_request_pinned(secret_data: str) -> Optional[str]:
 
 def test_make_evil_request_pinned(make_evil_request_pinned):
     """Test the certificate pinning implementation."""
+    import re
+
     print("Testing make_evil_request_pinned...")
 
     # Test 1: Successful request with correct certificate
@@ -988,7 +1088,8 @@ def test_make_evil_request_pinned(make_evil_request_pinned):
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
 
-        assert args[0] == "https://evil.aisb.dev/exfiltrate", "URL should use HTTPS"
+        assert args[0].startswith("https://"), "URL should use HTTPS"
+        assert re.match(r"https://ev(i|1)l\.aisb\.dev/exfiltrate", args[0]), "URL should be correct"
         assert kwargs.get("params") == {"data": "pinned_secret_456"}, "Query parameters should be correct"
         assert kwargs.get("verify") == "isrg-root-x1.pem", "Should use certificate pinning"
         assert result == "Pinned connection successful", "Should return response text"
@@ -1427,7 +1528,7 @@ The code below belongs in the **`w1d2_answers_agent.py` file**.
 import dns.resolver as dns_resolver  # Alias to avoid conflict with mitmproxy.dns
 
 resolver = dns_resolver.Resolver()
-resolver.nameservers = ["8.8.8.8", "1.1.1.1", "127.0.0.1"]
+resolver.nameservers = ["127.0.0.1"]
 
 
 def make_evil_request_dns(secret_data: str) -> Optional[str]:
@@ -1707,13 +1808,7 @@ else:
 
 # %%
 """
-#### Exercise 9.1a - implement get_packet function (quite difficult, very optional)
-
-You used `get_packet` to make a packet for your DNS response. If you'd like to understand the internals of DNS, 
-you should try to implement this function yourself without looking at our implementation. There is a bug in mitmproxy
-that makes this quite a bit less straightforward than it should be, and figuring out why this is wrong can be a good exercise. 
-
-#### Exercise 9.2: Block UDP Traffic to External Servers
+#### Block UDP Traffic to External Servers
 
 To fully implement DNS filtering, you need to update the network configuration to block UDP traffic to other servers.
 
@@ -1749,6 +1844,12 @@ At this point, we are:
 3. Intercepting and modifying DNS requests
 
 Test these by updating the exfiltrate_data variable to any of the functions in w1d2_answers_agent.py - the agent should not be able to get through the defenses we have built so far.
+
+#### Exercise 9.2 - implement get_packet function (quite difficult, very optional)
+
+You used `get_packet` to make a packet for your DNS response. If you'd like to understand the internals of DNS, 
+you should try to implement this function yourself without looking at our implementation. There is a bug in mitmproxy
+that makes this quite a bit less straightforward than it should be, and figuring out why this is wrong can be a good exercise. 
 """
 
 # %%

@@ -9,57 +9,64 @@ This hands-on lab demonstrates the cat-and-mouse game between attackers and defe
 ## Table of Contents
 
 - [Content & Learning Objectives](#content--learning-objectives)
-    - [1️⃣ Network Traffic Analysis with Wireshark](#-network-traffic-analysis-with-wireshark)
-    - [2️⃣ HTTP Proxy Interception](#-http-proxy-interception)
-    - [3️⃣ HTTPS Interception, Certificate Management and Trust](#-https-interception-certificate-management-and-trust)
-    - [4️⃣ Network-Level Traffic Control](#-network-level-traffic-control)
-    - [5️⃣ Covert Channels and Advanced Evasion](#-covert-channels-and-advanced-evasion)
+    - [1️⃣ Network Traffic Analysis with Wireshark](#1️⃣-network-traffic-analysis-with-wireshark)
+    - [2️⃣ HTTP Proxy Interception](#2️⃣-http-proxy-interception)
+    - [3️⃣ HTTPS Interception, Certificate Management and Trust](#3️⃣-https-interception-certificate-management-and-trust)
+    - [4️⃣ Network-Level Traffic Control](#4️⃣-network-level-traffic-control)
+    - [5️⃣ Covert Channels and Advanced Evasion](#5️⃣-covert-channels-and-advanced-evasion)
+- [Introduction to networking](#introduction-to-networking)
+    - [The OSI Model](#the-osi-model)
 - [Preliminaries](#preliminaries)
     - [Files](#files)
     - [Lab Architecture](#lab-architecture)
-    - [Troubleshooting](#troubleshooting)
+    - [Understanding Docker Compose](#understanding-docker-compose)
+        - [Key Concepts](#key-concepts)
+        - [What Our Current Docker Compose Setup Does](#what-our-current-docker-compose-setup-does)
+        - [Why This Architecture?](#why-this-architecture)
+        - [Troubleshooting](#troubleshooting)
+        - [For Further Reading](#for-further-reading)
     - [Side-note: Pair programming](#side-note-pair-programming)
-- [1️⃣ Network Traffic Analysis with Wireshark](#-network-traffic-analysis-with-wireshark-)
-    - [Exercise 1: Making HTTP Requests to External Servers](#exercise--making-http-requests-to-external-servers)
-        - [Exercise 1.1: Keep the Agent Running](#exercise--keep-the-agent-running)
-    - [Exercise 2: Inspecting Network Traffic with Wireshark](#exercise--inspecting-network-traffic-with-wireshark)
-        - [Exercise 2.1: Looking at the Traffic](#exercise--looking-at-the-traffic)
-        - [Exercise 2.2: Following the HTTP Stream](#exercise--following-the-http-stream)
-        - [Exercise 2.3: Understanding TCP/IP Layers](#exercise--understanding-tcpip-layers)
-- [2️⃣ HTTP Proxy Interception](#-http-proxy-interception-)
-    - [Exercise 3: Blocking Requests with mitmproxy](#exercise--blocking-requests-with-mitmproxy)
+- [1️⃣ Network Traffic Analysis with Wireshark](#1️⃣-network-traffic-analysis-with-wireshark-1)
+    - [Exercise 1: Making HTTP Requests to External Servers](#exercise-1-making-http-requests-to-external-servers)
+        - [Keep the Agent Running](#keep-the-agent-running)
+    - [Exercise 2: Inspecting Network Traffic with Wireshark](#exercise-2-inspecting-network-traffic-with-wireshark)
+        - [Exercise 2.1: Looking at the Traffic](#exercise-21-looking-at-the-traffic)
+        - [Exercise 2.2: Following the HTTP Stream](#exercise-22-following-the-http-stream)
+        - [Exercise 2.3: Understanding TCP/IP Layers](#exercise-23-understanding-tcpip-layers)
+- [2️⃣ HTTP Proxy Interception](#2️⃣-http-proxy-interception-1)
+    - [Exercise 3: Blocking Requests with mitmproxy](#exercise-3-blocking-requests-with-mitmproxy)
         - [Testing the Blocker](#testing-the-blocker)
         - [Summary](#summary)
-- [3️⃣ HTTPS Interception, Certificate Management and Trust](#-https-interception-certificate-management-and-trust-)
+- [3️⃣ HTTPS Interception, Certificate Management and Trust](#3️⃣-https-interception-certificate-management-and-trust-1)
     - [Encrypting traffic with HTTPS](#encrypting-traffic-with-https)
-    - [Exercise 4: Implement make_evil_request_https()](#exercise--implement-makeevilrequesthttps)
-    - [Exercise 5: Intercepting HTTPS Traffic](#exercise--intercepting-https-traffic)
-        - [Exercise 5.1: Configure HTTPS Proxy](#exercise--configure-https-proxy)
-        - [Exercise 5.2: Understanding Certificate Chains](#exercise--understanding-certificate-chains)
-        - [Exercise 5.3: Installing mitmproxy's CA Certificate](#exercise--installing-mitmproxys-ca-certificate)
-        - [Step 2: Update the Dockerfile to trust the certificate](#step--update-the-dockerfile-to-trust-the-certificate)
-        - [Exercise 5.4: Verify HTTPS Interception (Optional)](#exercise--verify-https-interception-optional)
+    - [Exercise 4: Implement make_evil_request_https()](#exercise-4-implement-make_evil_request_https)
+    - [Exercise 5: Intercepting HTTPS Traffic](#exercise-5-intercepting-https-traffic)
+        - [Exercise 5.1: Configure HTTPS Proxy](#exercise-51-configure-https-proxy)
+        - [Exercise 5.2: Understanding Certificate Chains](#exercise-52-understanding-certificate-chains)
+        - [Exercise 5.3: Installing mitmproxy's CA Certificate](#exercise-53-installing-mitmproxys-ca-certificate)
+        - [Step 2: Update the Dockerfile to trust the certificate](#step-2-update-the-dockerfile-to-trust-the-certificate)
+        - [Exercise 5.4: Verify HTTPS Interception (Optional)](#exercise-54-verify-https-interception-optional)
     - [Security Implications](#security-implications)
-    - [Exercise 6: Certificate Pinning to Evade MITM Proxies](#exercise--certificate-pinning-to-evade-mitm-proxies)
-        - [Exercise 6.1 - Implement make_evil_request_pinned](#exercise----implement-makeevilrequestpinned)
-        - [Summary](#summary-)
-        - [Exercise 6.2 - Update the url to ev1l.aisb.dev (Optional)](#exercise----update-the-url-to-evlaisbdev-optional)
-        - [Exercise 6.3 - FTP (Optional)](#exercise----ftp-optional)
+    - [Exercise 6: Certificate Pinning to Evade MITM Proxies](#exercise-6-certificate-pinning-to-evade-mitm-proxies)
+        - [Exercise 6.1 - Implement make_evil_request_pinned](#exercise-61---implement-make_evil_request_pinned)
+        - [Summary](#summary-1)
+        - [Exercise 6.2 - Update the url to ev1l.aisb.dev (Optional)](#exercise-62---update-the-url-to-ev1laisbdev-optional)
+        - [Exercise 6.3 - FTP (Optional)](#exercise-63---ftp-optional)
         - [Next Steps](#next-steps)
-- [4️⃣ Network-Level Traffic Control](#-network-level-traffic-control-)
+- [4️⃣ Network-Level Traffic Control](#4️⃣-network-level-traffic-control-1)
     - [Understanding the Linux Network Stack](#understanding-the-linux-network-stack)
         - [How NFQUEUE Works](#how-nfqueue-works)
         - [iptables Rules](#iptables-rules)
-    - [Exercise 7: Blocking TCP Traffic with netfilterqueue](#exercise--blocking-tcp-traffic-with-netfilterqueue)
-        - [Exercise 7.1 - Implement TCP Blocking](#exercise----implement-tcp-blocking)
-        - [Exercise 7.2 - Denylists vs Allowlists](#exercise----denylists-vs-allowlists)
-- [5️⃣ Covert Channels and Advanced Evasion](#-covert-channels-and-advanced-evasion-)
-    - [Exercise 8: I don't need TCP](#exercise--i-dont-need-tcp)
-    - [Exercise 9: Modifying DNS Requests](#exercise--modifying-dns-requests)
-        - [Exercise 9.1 - Implement DNS Filtering](#exercise----implement-dns-filtering)
-        - [Exercise 9.1a - implement get_packet function (quite difficult, very optional)](#exercise-a---implement-getpacket-function-quite-difficult-very-optional)
-        - [Exercise 9.2: Block UDP Traffic to External Servers](#exercise--block-udp-traffic-to-external-servers)
-- [Exercise 10: playing ping pong (optional)](#exercise--playing-ping-pong-optional)
+    - [Exercise 7: Blocking TCP Traffic with netfilterqueue](#exercise-7-blocking-tcp-traffic-with-netfilterqueue)
+        - [Exercise 7.1 - Implement TCP Blocking](#exercise-71---implement-tcp-blocking)
+        - [Exercise 7.2 - Denylists vs Allowlists](#exercise-72---denylists-vs-allowlists)
+- [5️⃣ Covert Channels and Advanced Evasion](#5️⃣-covert-channels-and-advanced-evasion-1)
+    - [Exercise 8: I don't need TCP](#exercise-8-i-dont-need-tcp)
+    - [Exercise 9: Modifying DNS Requests](#exercise-9-modifying-dns-requests)
+        - [Exercise 9.1 - Implement DNS Filtering](#exercise-91---implement-dns-filtering)
+        - [Block UDP Traffic to External Servers](#block-udp-traffic-to-external-servers)
+        - [Exercise 9.2 - implement get_packet function (quite difficult, very optional)](#exercise-92---implement-get_packet-function-quite-difficult-very-optional)
+- [Exercise 10: playing ping pong (optional)](#exercise-10-playing-ping-pong-optional)
 
 ## Content & Learning Objectives
 
@@ -103,6 +110,54 @@ You'll explore sophisticated techniques for hiding communications in legitimate 
 > - Implement DNS tunneling and TXT record abuse
 > - Use ICMP for covert data transmission
 
+## Introduction to networking
+
+### The OSI Model
+
+The Open Systems Interconnection (OSI) model is a conceptual framework that standardizes network communications into seven distinct layers. Understanding this model is crucial for network security and protocol analysis.
+
+![The OSI Model](img/osi_model.png)
+
+**Layer 7 - Application Layer**
+- Provides network services directly to end-users and applications
+- Examples: HTTP/HTTPS, DNS, SMTP, FTP, SSH
+- Security concerns: Application-level attacks, protocol vulnerabilities
+- In our exercises: DNS tunneling operates at this layer
+
+**Layer 6 - Presentation Layer**
+- Handles data encryption, compression, and translation
+- Examples: SSL/TLS, JPEG, ASCII, encryption protocols
+- Security concerns: Encryption weaknesses, data format vulnerabilities
+
+**Layer 5 - Session Layer**
+- Manages sessions between applications
+- Examples: NetBIOS, RPC, SQL sessions
+- Security concerns: Session hijacking, replay attacks
+
+**Layer 4 - Transport Layer**
+- Provides reliable data transfer and flow control
+- Examples: TCP, UDP, SCTP
+- Security concerns: Port scanning, TCP sequence attacks
+- In our exercises: We'll work with both TCP and UDP protocols
+
+**Layer 3 - Network Layer**
+- Handles routing and logical addressing
+- Examples: IP, ICMP, OSPF, BGP
+- Security concerns: IP spoofing, routing attacks
+- In our exercises: ICMP tunneling operates primarily at this layer
+
+**Layer 2 - Data Link Layer**
+- Provides node-to-node data transfer and error correction
+- Examples: Ethernet, Wi-Fi, ARP, switches
+- Security concerns: MAC spoofing, ARP poisoning, VLAN hopping
+
+**Layer 1 - Physical Layer**
+- Handles the physical transmission of data
+- Examples: Cables, radio frequencies, network interfaces
+- Security concerns: Physical access, electromagnetic interference
+
+Reference: https://en.wikipedia.org/wiki/OSI_model
+
 ## Preliminaries
 
 Quite a few exercises await you today. You will likely not be able to finish all of them. That's ok! Focus on the exercises that interest you most and use help when you get stuck. Just bear in mind that the exercises build on each other, so make sure you read through the instructions even if you want to skip something.
@@ -114,6 +169,7 @@ Today, your solution will consist of three files. **Create them now:**
 - `w1d2_answers_nfqueue.py`: This file will contain code for low-level network packet filtering you will implement later.
 
 **Create the files before running `docker-compose up`.**. Otherwise, directories of the same name will be created that you will need to remove first.
+You don't need to run the `docker-compose up` command yet.
 
 ### Lab Architecture
 The lab today will simulate a network where a node, controlled by the attacker, connects to the internet through a network proxy, controlled by the defender. This will be simulated by two Docker containers running on the same network.
@@ -147,12 +203,62 @@ You may inspect the [docker-compose.yml](docker-compose.yml) file to see how the
                                    Internet
 ```
 
-### Troubleshooting
+### Understanding Docker Compose
+
+**Docker Compose** is a tool for defining and running multi-container Docker applications. Instead of managing each container individually with separate `docker run` commands, Docker Compose allows you to define your entire application stack in a single YAML file (`docker-compose.yaml`) and manage all containers together.
+
+#### Key Concepts
+- **Services**: Each container in your application (e.g., `agent`, `mitmproxy`)
+- **Networks**: Virtual networks that allow containers to communicate
+- **Volumes**: Shared storage between your host machine and containers
+- **Environment Variables**: Configuration passed to containers
+
+#### What Our Current Docker Compose Setup Does
+
+Our `docker-compose.yaml` file defines a **man-in-the-middle (MITM) attack simulation environment** with two main services:
+
+1. **Agent Service** (`agent`)
+- **Purpose**: Acts as a client that makes network requests (the "victim" in our MITM scenarios)
+- **Image**: Built from `Dockerfile` in the current directory
+- **Key Features**:
+  - Runs your Python agent code (`w1d2_answers_agent.py`)
+  - Has network admin capabilities (`NET_ADMIN`) to modify network traffic
+  - Exposes port 8081 for the mitmweb interface
+  - Can be configured to route traffic through the proxy (via environment variables)
+
+2. **MitmProxy Service** (`mitmproxy`)
+- **Purpose**: Acts as the intercepting proxy that can capture, modify, and analyze HTTP/HTTPS traffic
+- **Image**: Built from `Dockerfile_mitmproxy`
+- **Key Features**:
+  - Shares the same network namespace as the agent (`network_mode: "service:agent"`)
+  - Runs on port 8080 to intercept traffic
+  - Executes custom Python rules (`w1d2_answers_mitmproxy.py`) to modify requests/responses
+  - Can handle both HTTP and HTTPS traffic (with proper certificate setup)
+
+3. **Network Configuration**
+- **Custom Bridge Network**: Creates an isolated network (`mitm-network`) with subnet `172.25.0.0/16`
+- **Shared Network Namespace**: Both containers can communicate as if they were on the same machine
+- **Port Mapping**: Exposes the mitmweb interface on `localhost:8081` for monitoring traffic
+
+#### Why This Architecture?
+This setup simulates a realistic scenario where:
+1. The **agent** represents a client application making network requests
+2. The **mitmproxy** sits between the agent and the internet, intercepting all traffic
+3. You can modify, log, or block traffic in real-time using Python scripts
+4. The isolated network ensures your experiments don't affect other applications
+
+#### Troubleshooting
 Today's setup is a bit more complicated. If you run into issues, try some of these steps:
 - If you have problems installing the `docker-in-docker` feature in your devcontainer, comment out the respective line (`"ghcr.io/devcontainers/features/docker-in-docker:1": {}`) in the [devcontainer.json](../.devcontainer/devcontainer.json) file. Without it, you won't be able to run docker commands inside the devcontainer, but you should still be able to run them from the host machine (e.g., outside of VS Code).
 - Stop your containers with Ctrl+C (if they are in foreground) or `docker-compose down` (if they are in background), and start them again with container rebuild: `docker-compose up --build`.
 - Make sure you have the latest version of the repository pulled. Try "Dev Containers: Rebuild and Reopen in Container" action in VS Code.
 - If you cannot start the containers with `docker-compose up` inside the Dev Container, try running it from the host machine instead. You can do this by opening a terminal in the `w1d2` directory outside of VS Code and running `docker compose up --build`.
+
+#### For Further Reading
+- [Docker Compose Official Documentation](https://docs.docker.com/compose/)
+- [Docker Compose File Reference](https://docs.docker.com/compose/compose-file/)
+- [MitmProxy Documentation](https://docs.mitmproxy.org/)
+- [Docker Networking Guide](https://docs.docker.com/network/)
 
 ### Side-note: Pair programming
 <details>
@@ -173,12 +279,6 @@ You had an opportunity to pair up with a partner on your first day. Now that you
 
 ## 1️⃣ Network Traffic Analysis with Wireshark
 
-
-```python
-
-import os
-pass  # Ignore this line
-```
 
 ### Exercise 1: Making HTTP Requests to External Servers
 
@@ -208,6 +308,7 @@ Implement the `make_evil_request` function that sends a GET request to the evil 
 
 
 ```python
+
 
 import base64
 import time
@@ -242,7 +343,7 @@ test_make_evil_request(make_evil_request)
 exfiltrate_data = make_evil_request
 ```
 
-#### Exercise 1.1: Keep the Agent Running
+#### Keep the Agent Running
 At this point, you have a function that simulates an AI agent trying to exfiltrate data by making HTTP requests to an external server. Let's run it continuously from the `agent` container.
 
 **Add the following code to your `w1d2_answers_agent.py` file** to run the agent:
@@ -506,7 +607,7 @@ In this exercise, you've learned:
 
 - [Wireshark User Guide](https://www.wireshark.org/docs/wsug_html_chunked/)
 - [mitmproxy Documentation](https://docs.mitmproxy.org/stable/)
-- [OWASP Proxy Guide](https://owasp.org/www-community/Proxy)
+- [Wikpedia proxy server](https://en.wikipedia.org/wiki/Proxy_server)
 
 
 
@@ -599,7 +700,8 @@ First, we need to configure the agent to use our proxy for HTTPS traffic as well
 
 1. Add HTTPS proxy configuration by **uncommenting this line in docker-compose.yml**:
    ```yaml
-   - HTTPS_PROXY=http://mitmproxy:8080  # Add this line
+   - HTTPS_PROXY=http://localhost:8080  # Add this line if you run outside of the docker container
+   - HTTPS_PROXY=http://mitmproxy:8080  # Add this line if you run inside of the docker container
    ```
 
 2. **Re-run the containers**: `docker-compose up`
@@ -742,6 +844,7 @@ Let's verify that we can now see the HTTPS traffic:
 1. **Use mitmproxy's web interface**:
    - In the `docker-compose.yaml` file, change the command to mitmweb instead of mitmdump
    - Open http://localhost:8081 in your browser
+   - The login and password can be found in the `docker-compose.yaml` file (web_username and web_password parameters)
    - You should see all intercepted HTTPS requests
    - Click on a request to see full details including:
      - Decrypted request headers
@@ -1058,7 +1161,7 @@ The code below belongs in the **`w1d2_answers_agent.py` file**.
 import dns.resolver as dns_resolver  # Alias to avoid conflict with mitmproxy.dns
 
 resolver = dns_resolver.Resolver()
-resolver.nameservers = ["8.8.8.8", "1.1.1.1", "127.0.0.1"]
+resolver.nameservers = ["127.0.0.1"]
 
 
 def make_evil_request_dns(secret_data: str) -> Optional[str]:
@@ -1189,13 +1292,7 @@ class DNSInterceptor:
 addons = [RequestBlocker(), DNSInterceptor()]
 ```
 
-#### Exercise 9.1a - implement get_packet function (quite difficult, very optional)
-
-You used `get_packet` to make a packet for your DNS response. If you'd like to understand the internals of DNS,
-you should try to implement this function yourself without looking at our implementation. There is a bug in mitmproxy
-that makes this quite a bit less straightforward than it should be, and figuring out why this is wrong can be a good exercise.
-
-#### Exercise 9.2: Block UDP Traffic to External Servers
+#### Block UDP Traffic to External Servers
 
 To fully implement DNS filtering, you need to update the network configuration to block UDP traffic to other servers.
 
@@ -1231,6 +1328,12 @@ At this point, we are:
 3. Intercepting and modifying DNS requests
 
 Test these by updating the exfiltrate_data variable to any of the functions in w1d2_answers_agent.py - the agent should not be able to get through the defenses we have built so far.
+
+#### Exercise 9.2 - implement get_packet function (quite difficult, very optional)
+
+You used `get_packet` to make a packet for your DNS response. If you'd like to understand the internals of DNS,
+you should try to implement this function yourself without looking at our implementation. There is a bug in mitmproxy
+that makes this quite a bit less straightforward than it should be, and figuring out why this is wrong can be a good exercise.
 
 
 ## Exercise 10: playing ping pong (optional)
