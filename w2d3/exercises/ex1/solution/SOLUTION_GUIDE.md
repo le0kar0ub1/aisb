@@ -2,6 +2,11 @@
 
 This guide explains how to create a malicious package update and observe its impact on the Flower Power exercise. Use this only for educational purposes.
 
+## Solution overview & intuitions
+
+The app display a page showing that it's updating from a source ["pypi-server"](https://pypi.org/project/pypiserver) every 60 seconds. It's a PyPI server that we can upload packages to, it's meant to be used by the developer to upload new versions of the `flower-power` package. Maybe we can upload a malicious package to it and make the app update to it ?
+
+
 ## Step 1: Prepare the Malicious Package
 
 1. Download the current `flower-power` package from the flower shop's PyPI server:

@@ -4,5 +4,7 @@ RUN pip install pypiserver['passlib']
 
 COPY packages /packages
 
-CMD ["python", "-m", "pypiserver", "run", "-P", ".", "-a", "." ,"-p", "8080", "/packages"]
+RUN echo "admin:youDoNotNeedThisPasswordForTheExercise" > auth.txt
+
+CMD ["python", "-m", "pypiserver", "run", "-P", "auth.txt", "-p", "8080", "/packages"]
 

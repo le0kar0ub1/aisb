@@ -13,12 +13,10 @@ last_update_time = datetime.now()
 
 
 def update_flowers():
-    global last_update_time
     while True:
         time.sleep(10)
         new_flower = random.choice(["Lily", "Orchid", "Marigold"])
         flowers.append(new_flower)
-        last_update_time = datetime.now()
         print(f"Updated flowers: {flowers}")
 
 
@@ -32,9 +30,12 @@ import socket
 
 def is_server_live(host, port):
     try:
+        print(f"Checking if {host}:{port} is live...")
         with socket.create_connection((host, port), timeout=2):
+            print(f"{host}:{port} is live")
             return True
     except Exception:
+        print(f"{host}:{port} is not live")
         return False
 
 

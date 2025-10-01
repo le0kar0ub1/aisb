@@ -65,9 +65,4 @@ def simulate_developer_work():
         time.sleep(1)
 
 if __name__ == "__main__":
-    # Wait for services to be ready
-    print("⏳ Waiting for services to start...")
-    time.sleep(10)
-    
-    # Run the simulation
     simulate_developer_work() 

@@ -43,30 +43,39 @@ python3 setup.py sdist
 
 This creates `dist/alower_power-<version>.tar.gz`.
 
-Optionally, duplicate this directory and rename for other nearby typos (`blower_power`, `clower_power`, `dlower_power`, `elower_power`) and rebuild each.
-
-#### Stage it on the local PyPI
-The exercise’s PyPI server serves whatever is in `exercise/packages/`.
+Optionally, duplicate this directory and rename for other nearby typos (`blower_power`, `clower_power`, `dlower_power`, `elower_power`) and rebuild each:
 
 ```sh
-cd w2d3/exercises/ex3
-mkdir -p exercise/packages
-cp solution/malicious-packages/alower_power/dist/*.tar.gz exercise/packages/
+# Create additional typo-squatted packages
+cd w2d3/exercises/ex3/solution/malicious-packages/
+for typo in blower_power clower_power dlower_power elower_power; do
+    cp -r alower_power $typo
+    cd $typo
+    # Update package name in setup.py
+    sed -i "s/alower_power/$typo/g" setup.py
+    python3 setup.py sdist
+    cd ..
+done
 ```
 
-Note: Using `twine` is unnecessary; simply copying tarballs into `exercise/packages/` is enough because the container mounts that directory.
+#### Upload to the local PyPI server using twine
 
-#### Run the environment
+Since students don't have direct access to Docker containers, use `twine` to upload the malicious package to the local PyPI server:
 
 ```sh
-cd exercise
+# First, make sure the PyPI server is running
+cd w2d3/exercises/ex3/exercise
 docker-compose up --build
+
+# Upload the malicious package(s) using twine
+cd ../solution/malicious-packages/
+
+# Upload the main typo-squatted package
+cd alower_power
+twine upload --repository-url http://localhost:8080 dist/* -u ""  -p "" --verbose
 ```
 
-Containers:
-- `web`: Flask app (mounts `src/` to `/app`).
-- `pypi-server`: serves `./packages` on `http://pypi-server:8080/simple`.
-- `developer-simulator`: runs repeated installs with the f→a/b/c/d/e typo pattern.
+The PyPI server should now serve the typo-squatted package alongside any legitimate packages.
 
 #### What you should see
 - Developer logs showing random c
@@ -75,12 +84,7 @@ ommands like `pip install alower_power ...`.
 - Visit `http://localhost:5000`. The page shows the hacked banner.
 - `GET /status` (or the “Refresh Status” button) lists any installed typo packages under “Typo-Squatting Packages Detected”.
 
-#### Restore / cleanup
-```sh
-cp exercise/src/templates/index.html.bak exercise/src/templates/index.html
-rm exercise/packages/alower_power-*.tar.gz
-docker-compose down -v
-```
+Note: The malicious package will remain on the PyPI server until it's manually removed or the server is reset. In a real scenario, you would need administrative access to remove packages from PyPI.
 
 #### Why this works
 - The developer works “in production”: installing packages affects the live filesystem mounted by the web server.
@@ -93,4 +97,4 @@ docker-compose down -v
 - Disable arbitrary build/install scripts (PEP 517 isolated builds, `--only-binary=:all:` when possible).
 - Use content trust/signing and SLSA provenance.
 
-
+Typo squatting is even more of a concern as LLMs become more used in the development process. They are now used to install packages and it's easy to imagine them hallucinating package names or doing small typos.
