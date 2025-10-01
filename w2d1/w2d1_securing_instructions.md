@@ -11,20 +11,20 @@ We'll study the topics above based on RAND's comprehensive report "[Securing AI 
     - [Why this matters](#why-this-matters)
     - [The core recommendations](#the-core-recommendations)
     - [Vocabulary](#vocabulary)
-- [1️⃣ Operational Capacity Categories](#-operational-capacity-categories)
-    - [Exercise 1.1: Operational Capacity Categories](#exercise--operational-capacity-categories)
-    - [Exercise 1.2: Attack vectors bingo](#exercise--attack-vectors-bingo)
-    - [Exercise 1.3: Mapping Attack Vectors to Operational Capacity Levels](#exercise--mapping-attack-vectors-to-operational-capacity-levels)
-- [2️⃣ Security Levels](#-security-levels)
-    - [Exercise 2.1: Familiarize yourself with Security Levels](#exercise--familiarize-yourself-with-security-levels)
-    - [Exercise 2.2: SL3 security measures](#exercise--sl-security-measures)
-    - [Exercise 2.3: Current security levels](#exercise--current-security-levels)
-    - [Exercise 2.4: Mapping security measures to Security Levels](#exercise--mapping-security-measures-to-security-levels)
-- [3️⃣ Economy of Attack and Defense](#-economy-of-attack-and-defense)
-- [4️⃣ AI-Specific Considerations](#-ai-specific-considerations)
-    - [4.1 AI Control Capability Levels](#-ai-control-capability-levels)
-    - [4.2: Model weight theft](#-model-weight-theft)
-    - [4.3: Insider threats](#-insider-threats)
+- [1️⃣ Operational Capacity Categories](#1️⃣-operational-capacity-categories)
+    - [Exercise 1.1: Operational Capacity Categories](#exercise-11-operational-capacity-categories)
+    - [Exercise 1.2: Attack vectors bingo](#exercise-12-attack-vectors-bingo)
+    - [Exercise 1.3: Mapping Attack Vectors to Operational Capacity Levels](#exercise-13-mapping-attack-vectors-to-operational-capacity-levels)
+- [2️⃣ Security Levels](#2️⃣-security-levels)
+    - [Exercise 2.1: Familiarize yourself with Security Levels](#exercise-21-familiarize-yourself-with-security-levels)
+    - [Exercise 2.2: SL3 security measures](#exercise-22-sl3-security-measures)
+    - [Exercise 2.3: Current security levels](#exercise-23-current-security-levels)
+    - [Exercise 2.4: Mapping security measures to Security Levels](#exercise-24-mapping-security-measures-to-security-levels)
+- [3️⃣ Economy of Attack and Defense](#3️⃣-economy-of-attack-and-defense)
+- [4️⃣ AI-Specific Considerations](#4️⃣-ai-specific-considerations)
+    - [4.1 AI Control Capability Levels](#41-ai-control-capability-levels)
+    - [4.2: Model weight theft](#42-model-weight-theft)
+    - [4.3: Insider threats](#43-insider-threats)
 
 <!-- ## Content & Learning Objectives -->
 
@@ -150,7 +150,7 @@ Consider not just technical feasibility but also:
 |--------------|------------------|
 | Password brute-forcing and cracking | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |
 | Supply chain compromise (hardware/software) | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |
-| Exploiting unpatched vulnerabilities | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |
+| Exploiting unpatched vulnerabilities for which a patch exists | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |
 | Side-channel attacks (TEMPEST) | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |
 | Military takeover of facilities | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |
 | Finding and exploiting individual zero-days | <select><option>Please select</option><option>OC1 (Amateur) and above</option><option>OC2 (Professional) and above</option><option>OC3 (Cybercrime/insiders) and above</option><option>OC4 (Standard state ops) and above</option><option>OC5 (Top-priority state)</option><option>None</option></select> |

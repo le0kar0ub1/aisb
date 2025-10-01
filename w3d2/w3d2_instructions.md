@@ -2,19 +2,19 @@
 # W3D2 - Large Language Models
 ## Table of Contents
 
-- [Exercise 1: Tokenization](#exercise--tokenization)
-    - [Exercise 1.1](#exercise-)
-    - [Exercise 1.2](#exercise-)
-    - [Exercise 1.3](#exercise-)
-    - [Exercise 1.4](#exercise-)
-    - [Exercise 1.5](#exercise-)
-    - [Exercise 1.6](#exercise-)
-- [Exercise 2: Prompt Injection Attacks](#exercise--prompt-injection-attacks)
+- [Exercise 1: Tokenization](#exercise-1-tokenization)
+    - [Exercise 1.1](#exercise-11)
+    - [Exercise 1.2](#exercise-12)
+    - [Exercise 1.3](#exercise-13)
+    - [Exercise 1.4](#exercise-14)
+    - [Exercise 1.5](#exercise-15)
+    - [Exercise 1.6](#exercise-16)
+- [Exercise 2: Prompt Injection Attacks](#exercise-2-prompt-injection-attacks)
     - [Background](#background)
-    - [Exercise 2.1 - Basic Prompt Injection](#exercise----basic-prompt-injection)
-- [Exercise 3: Model Extraction Attacks](#exercise--model-extraction-attacks)
-    - [Exercise 3.1 - Complete Model Dimension Extraction](#exercise----complete-model-dimension-extraction)
-    - [Exercise 2.3 extracting model weights](#exercise--extracting-model-weights)
+    - [Exercise 2.1 - Basic Prompt Injection](#exercise-21---basic-prompt-injection)
+- [Exercise 3: Model Extraction Attacks](#exercise-3-model-extraction-attacks)
+    - [Exercise 3.1 - Complete Model Dimension Extraction](#exercise-31---complete-model-dimension-extraction)
+    - [Exercise 2.3 extracting model weights](#exercise-23-extracting-model-weights)
     - [Extensions to try](#extensions-to-try)
 
 ## Exercise 1: Tokenization

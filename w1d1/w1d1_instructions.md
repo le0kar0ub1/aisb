@@ -8,41 +8,41 @@ Understanding these primitives will give you insight into both the power and lim
 ## Table of Contents
 
 - [Content & Learning Objectives](#content--learning-objectives)
-    - [1️⃣ Stream Ciphers & Linear Congruential Generators](#-stream-ciphers--linear-congruential-generators)
-    - [2️⃣ Block Ciphers: Simplified DES](#-block-ciphers-simplified-des)
-    - [3️⃣ Block Ciphers: Substitution-Permutation Networks](#-block-ciphers-substitution-permutation-networks)
-- [1️⃣ Stream Ciphers & Linear Congruential Generators](#-stream-ciphers--linear-congruential-generators-)
+    - [1️⃣ Stream Ciphers & Linear Congruential Generators](#1️⃣-stream-ciphers--linear-congruential-generators)
+    - [2️⃣ Block Ciphers: Simplified DES](#2️⃣-block-ciphers-simplified-des)
+    - [3️⃣ Block Ciphers: Substitution-Permutation Networks](#3️⃣-block-ciphers-substitution-permutation-networks)
+- [1️⃣ Stream Ciphers & Linear Congruential Generators](#1️⃣-stream-ciphers--linear-congruential-generators-1)
     - [Stream Ciphers and Pseudorandom Generators](#stream-ciphers-and-pseudorandom-generators)
     - [Tips for exercises](#tips-for-exercises)
-    - [Exercise 1.1: Implementing a Linear Congruential Generator (LCG)](#exercise--implementing-a-linear-congruential-generator-lcg)
-    - [Exercise 1.2: Building a Stream Cipher](#exercise--building-a-stream-cipher)
+    - [Exercise 1.1: Implementing a Linear Congruential Generator (LCG)](#exercise-11-implementing-a-linear-congruential-generator-lcg)
+    - [Exercise 1.2: Building a Stream Cipher](#exercise-12-building-a-stream-cipher)
     - [Stream Cipher Security](#stream-cipher-security)
         - [Why LCG is Not Cryptographically Secure](#why-lcg-is-not-cryptographically-secure)
         - [Real Cryptographic Stream Ciphers](#real-cryptographic-stream-ciphers)
         - [The Importance of Key Reuse](#the-importance-of-key-reuse)
         - [Next Steps](#next-steps)
-    - [Exercise 1.3: Breaking Stream Ciphers with Crib-Dragging](#exercise--breaking-stream-ciphers-with-crib-dragging)
-    - [Exercise 1.3a: LCG State Recovery](#exercise-a-lcg-state-recovery)
-    - [Exercise 1.3b: The Crib-Dragging Attack](#exercise-b-the-crib-dragging-attack)
-    - [Exercise 1.3c: Full Message Recovery](#exercise-c-full-message-recovery)
+    - [Exercise 1.3: Breaking Stream Ciphers with Crib-Dragging](#exercise-13-breaking-stream-ciphers-with-crib-dragging)
+    - [Exercise 1.3a: LCG State Recovery](#exercise-13a-lcg-state-recovery)
+    - [Exercise 1.3b: The Crib-Dragging Attack](#exercise-13b-the-crib-dragging-attack)
+    - [Exercise 1.3c: Full Message Recovery](#exercise-13c-full-message-recovery)
     - [Summary: What We've Learned](#summary-what-weve-learned)
     - [Preventing These Attacks](#preventing-these-attacks)
     - [Stretch: Automated Crib-Dragging](#stretch-automated-crib-dragging)
-- [2️⃣ Block Ciphers: Simplified DES](#-block-ciphers-simplified-des-)
+- [2️⃣ Block Ciphers: Simplified DES](#2️⃣-block-ciphers-simplified-des-1)
     - [Understanding Feistel Ciphers](#understanding-feistel-ciphers)
     - [DES Components](#des-components)
-    - [Exercise 2.1: Understanding Permutations and Expansions](#exercise--understanding-permutations-and-expansions)
-    - [Exercise 2.2: Key Schedule - Generating Subkeys](#exercise--key-schedule---generating-subkeys)
-    - [Exercise 2.3: The Feistel Function (fk)](#exercise--the-feistel-function-fk)
-    - [Exercise 2.4: Complete DES Encryption](#exercise--complete-des-encryption)
-    - [Exercise 2.5: Meet-in-the-Middle Attack on Double DES](#exercise--meet-in-the-middle-attack-on-double-des)
-- [3️⃣ Block Ciphers: Substitution-Permutation Networks](#-block-ciphers-substitution-permutation-networks-)
+    - [Exercise 2.1: Understanding Permutations and Expansions](#exercise-21-understanding-permutations-and-expansions)
+    - [Exercise 2.2: Key Schedule - Generating Subkeys](#exercise-22-key-schedule---generating-subkeys)
+    - [Exercise 2.3: The Feistel Function (fk)](#exercise-23-the-feistel-function-fk)
+    - [Exercise 2.4: Complete DES Encryption](#exercise-24-complete-des-encryption)
+    - [Exercise 2.5: Meet-in-the-Middle Attack on Double DES](#exercise-25-meet-in-the-middle-attack-on-double-des)
+- [3️⃣ Block Ciphers: Substitution-Permutation Networks](#3️⃣-block-ciphers-substitution-permutation-networks-1)
     - [Understanding Substitution-Permutation Networks](#understanding-substitution-permutation-networks)
     - [Key Properties of Secure Block Ciphers](#key-properties-of-secure-block-ciphers)
-    - [Exercise 3.1: Implementing S-box Substitution](#exercise--implementing-s-box-substitution)
-    - [Exercise 3.2: Implementing P-box Permutation](#exercise--implementing-p-box-permutation)
-    - [Exercise 3.3: Building the Complete Block Cipher](#exercise--building-the-complete-block-cipher)
-    - [Exercise 3.4: Implementing ECB Mode](#exercise--implementing-ecb-mode)
+    - [Exercise 3.1: Implementing S-box Substitution](#exercise-31-implementing-s-box-substitution)
+    - [Exercise 3.2: Implementing P-box Permutation](#exercise-32-implementing-p-box-permutation)
+    - [Exercise 3.3: Building the Complete Block Cipher](#exercise-33-building-the-complete-block-cipher)
+    - [Exercise 3.4: Implementing ECB Mode](#exercise-34-implementing-ecb-mode)
 - [Further reading](#further-reading)
 
 ## Content & Learning Objectives
@@ -188,8 +188,6 @@ Implement the `lcg_keystream` function that generates a stream of bytes using th
 
 
 ```python
-
-from typing import Generator
 
 
 def lcg_keystream(seed: int) -> Generator[int, None, None]:
@@ -720,7 +718,6 @@ You will also implement 2DES and an attack that demonstrates why doubling the ro
 
 ```python
 import random
-from typing import List, Tuple
 
 _params_rng = random.Random(0)
 P10 = list(range(10))
@@ -1534,7 +1531,7 @@ test_ecb_mode(aes_encrypt, aes_decrypt, SBOX, PBOX, INV_SBOX, INV_PBOX)
 ```
 
 ## Further reading
-If you'd like to learn more about real-world attacks, you can read, e.g., about [attacks on the RC4 stream cipher](https://en.wikipedia.org/wiki/RC4#Security). This algorithm was widely used in protocols like TLS and WEP, but it has several vulnerabilities that make it insecure for modern use. A notable attack on RC4 is the [Fluhrer, Mantin, and Shamir attack](https://en.wikipedia.org/wiki/Fluhrer,_Mantin_and_Shamir_attack), which exploits the surprising finding thatthe statistics for the first few bytes of output keystream are strongly non-random.
+If you'd like to learn more about real-world attacks, you can read, e.g., about [attacks on the RC4 stream cipher](https://en.wikipedia.org/wiki/RC4#Security). This algorithm was widely used in protocols like TLS and WEP, but it has several vulnerabilities that make it insecure for modern use. A notable attack on RC4 is the [Fluhrer, Mantin, and Shamir attack](https://en.wikipedia.org/wiki/Fluhrer,_Mantin_and_Shamir_attack), which exploits the surprising finding that the statistics for the first few bytes of output keystream are strongly non-random.
 
 
 
