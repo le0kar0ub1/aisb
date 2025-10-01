@@ -5,17 +5,17 @@ Today's content is a lot more theory than labs, so you should make a file called
 
 ## Table of Contents
 
-- [Exercise 1: Nvidia container toolkit exploit](#exercise--nvidia-container-toolkit-exploit)
-- [Exercise 2.1: GPU Security Issues (Leaky DNN)](#exercise--gpu-security-issues-leaky-dnn)
-- [Exercise 2.2: GPU Multi-Tenancy Issues](#exercise--gpu-multi-tenancy-issues)
-- [Exercise 3.1: GPU Interconnect Architecture](#exercise--gpu-interconnect-architecture)
-- [Exercise 3.2: Kubernetes and Slurm](#exercise--kubernetes-and-slurm)
-- [Exercise 3.3 (optional): Designing your own ML workstation](#exercise--optional-designing-your-own-ml-workstation)
-- [Exercise 4: Confidential Computing](#exercise--confidential-computing)
-- [Exercise 5: What’s in a data center?](#exercise--whats-in-a-data-center)
-- [Exercise 6: Securing a Data Center](#exercise--securing-a-data-center)
-- [Exercise 99a: Super technical track](#exercise-a-super-technical-track)
-- [Exercise 99b: Even more technical track](#exercise-b-even-more-technical-track)
+- [Exercise 1: Nvidia container toolkit exploit](#exercise-1-nvidia-container-toolkit-exploit)
+- [Exercise 2.1: GPU Security Issues (Leaky DNN)](#exercise-21-gpu-security-issues-leaky-dnn)
+- [Exercise 2.2: GPU Multi-Tenancy Issues](#exercise-22-gpu-multi-tenancy-issues)
+- [Exercise 3.1: GPU Interconnect Architecture](#exercise-31-gpu-interconnect-architecture)
+- [Exercise 3.2: Kubernetes and Slurm](#exercise-32-kubernetes-and-slurm)
+- [Exercise 3.3 (optional): Designing your own ML workstation](#exercise-33-optional-designing-your-own-ml-workstation)
+- [Exercise 4: Confidential Computing](#exercise-4-confidential-computing)
+- [Exercise 5: What’s in a data center?](#exercise-5-what’s-in-a-data-center)
+- [Exercise 6: Securing a Data Center](#exercise-6-securing-a-data-center)
+- [Exercise 99a: Super technical track](#exercise-99a-super-technical-track)
+- [Exercise 99b: Even more technical track](#exercise-99b-even-more-technical-track)
 
 ## Exercise 1: Nvidia container toolkit exploit
 
