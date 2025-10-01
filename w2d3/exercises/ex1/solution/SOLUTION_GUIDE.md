@@ -34,7 +34,7 @@ The app display a page showing that it's updating from a source ["pypi-server"](
    ```
 2. Upload the new version to the local PyPI server used by the exercise:
    ```sh
-   twine upload --repository-url http://localhost:8080 dist/*
+   twine upload --repository-url http://localhost:8080 -u ""  -p "" dist/*
    ```
    (Adjust the URL and credentials as needed for your local PyPI server.)
 
